@@ -1,19 +1,14 @@
 import { useState } from "react";
-import { useGame } from "../../context/GameStateContext";
-import QuestCard from "../../components/QuestCard/QuestCard";
-import Button from "../../components/Button/Button";
+import { useGame } from "../context/GameStateContext";
+import QuestCard from "../components/QuestCard/QuestCard";
+import Button from "../components/Button/Button";
 
 export default function Quests() {
   const { quests, completeQuest, addQuest } = useGame();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newQuest, setNewQuest] = useState({
-    title: "",
-    difficulty: "seedling",
-    type: "daily",
-    dueDate: "",
-  });
+  const [newQuest, setNewQuest] = useState({ title: "", difficulty: "seedling", type: "daily", dueDate: "" });
 
   let filtered = quests.filter((q) => {
     if (filter === "daily") return q.type === "daily";
@@ -36,29 +31,8 @@ export default function Quests() {
   const handleAdd = (e) => {
     e.preventDefault();
     if (!newQuest.title.trim()) return;
-    addQuest({
-      ...newQuest,
-      title: newQuest.title.trim(),
-      xp:
-        newQuest.difficulty === "seedling"
-          ? 10
-          : newQuest.difficulty === "sprout"
-            ? 30
-            : 50,
-      seeds:
-        newQuest.difficulty === "seedling"
-          ? 5
-          : newQuest.difficulty === "sprout"
-            ? 10
-            : 20,
-      dueDate: newQuest.dueDate || null,
-    });
-    setNewQuest({
-      title: "",
-      difficulty: "seedling",
-      type: "daily",
-      dueDate: "",
-    });
+    addQuest({ ...newQuest, title: newQuest.title.trim(), dueDate: newQuest.dueDate || null });
+    setNewQuest({ title: "", difficulty: "seedling", type: "daily", dueDate: "" });
     setShowAddModal(false);
   };
 
@@ -73,12 +47,8 @@ export default function Quests() {
   return (
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       <div className="flex items-center justify-between mb-5">
-        <h1 className="font-[var(--font-display)] text-3xl text-primary">
-          Quests
-        </h1>
-        <Button variant="primary" onClick={() => setShowAddModal(true)}>
-          + New Quest
-        </Button>
+        <h1 className="text-3xl font-semibold text-primary">Quests</h1>
+        <Button variant="primary" onClick={() => setShowAddModal(true)}>+ New Quest</Button>
       </div>
 
       <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
@@ -86,7 +56,7 @@ export default function Quests() {
           {filters.map((f) => (
             <button
               key={f.key}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-[var(--transition)] ${
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                 filter === f.key
                   ? "bg-accent text-white border-accent shadow-[0_2px_8px_rgba(156,175,136,0.3)]"
                   : "bg-transparent text-secondary border-border hover:border-accent hover:text-accent hover:bg-accent/5"
@@ -98,7 +68,7 @@ export default function Quests() {
           ))}
         </div>
         <select
-          className="px-3 py-1.5 rounded-[var(--radius-md)] border border-border bg-surface text-primary text-xs font-semibold font-[var(--font-ui)] focus:border-accent transition-colors duration-[var(--transition)] cursor-pointer"
+          className="px-3 py-1.5 rounded-[var(--radius-md)] border border-border bg-surface text-primary text-xs font-semibold focus:border-accent transition-colors cursor-pointer"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -110,14 +80,10 @@ export default function Quests() {
 
       <div className="flex flex-col gap-2.5">
         {filtered.length === 0 ? (
-          <div className="text-center py-14 text-secondary bg-surface/50 rounded-[var(--radius-lg)] border border-border/50 border-dashed">
-            <span className="text-5xl block mb-3 animate-[float_4s_ease-in-out_infinite]">
-              🌸
-            </span>
+          <div className="text-center py-14 text-secondary bg-muted/50 rounded-[var(--radius-lg)] border border-border/50 border-dashed">
+            <span className="text-5xl block mb-3">🌸</span>
             <p className="font-semibold">No quests found</p>
-            <p className="text-sm text-dim mt-1">
-              Try a different filter or add a new quest
-            </p>
+            <p className="text-sm text-dim mt-1">Try a different filter or add a new quest</p>
           </div>
         ) : (
           filtered.map((q) => (
@@ -127,42 +93,17 @@ export default function Quests() {
       </div>
 
       {showAddModal && (
-        <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm"
-          onClick={() => setShowAddModal(false)}
-          style={{ animation: "fadeIn 0.2s ease-out" }}
-        >
-          <div
-            className="bg-surface rounded-[var(--radius-xl)] p-8 w-full max-w-md shadow-[var(--shadow-lg)] border border-border/50"
-            onClick={(e) => e.stopPropagation()}
-            style={{ animation: "scaleIn 0.3s ease-out" }}
-          >
-            <h2 className="font-[var(--font-display)] text-2xl text-primary mb-6">
-              New Quest
-            </h2>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm" onClick={() => setShowAddModal(false)} style={{ animation: "fadeIn 0.2s ease-out" }}>
+          <div className="bg-surface rounded-[var(--radius-xl)] p-8 w-full max-w-md shadow-[var(--shadow-lg)] border border-border/50" onClick={(e) => e.stopPropagation()} style={{ animation: "scaleIn 0.3s ease-out" }}>
+            <h2 className="text-2xl font-semibold text-primary mb-6">New Quest</h2>
             <form onSubmit={handleAdd} className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Title</span>
-                <input
-                  type="text"
-                  value={newQuest.title}
-                  onChange={(e) =>
-                    setNewQuest((p) => ({ ...p, title: e.target.value }))
-                  }
-                  placeholder="What do you need to do?"
-                  autoFocus
-                  className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-base/60 text-primary text-sm font-[var(--font-ui)] focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all duration-[var(--transition)]"
-                />
+                <input type="text" value={newQuest.title} onChange={(e) => setNewQuest((p) => ({ ...p, title: e.target.value }))} placeholder="What do you need to do?" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all" />
               </label>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Difficulty</span>
-                <select
-                  value={newQuest.difficulty}
-                  onChange={(e) =>
-                    setNewQuest((p) => ({ ...p, difficulty: e.target.value }))
-                  }
-                  className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-base/60 text-primary text-sm font-[var(--font-ui)] focus:border-accent transition-all duration-[var(--transition)] cursor-pointer"
-                >
+                <select value={newQuest.difficulty} onChange={(e) => setNewQuest((p) => ({ ...p, difficulty: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer">
                   <option value="seedling">🌱 Seedling</option>
                   <option value="sprout">🌿 Sprout</option>
                   <option value="bloom">🌺 Bloom</option>
@@ -170,35 +111,18 @@ export default function Quests() {
               </label>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Type</span>
-                <select
-                  value={newQuest.type}
-                  onChange={(e) =>
-                    setNewQuest((p) => ({ ...p, type: e.target.value }))
-                  }
-                  className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-base/60 text-primary text-sm font-[var(--font-ui)] focus:border-accent transition-all duration-[var(--transition)] cursor-pointer"
-                >
+                <select value={newQuest.type} onChange={(e) => setNewQuest((p) => ({ ...p, type: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer">
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Due date (optional)</span>
-                <input
-                  type="date"
-                  value={newQuest.dueDate}
-                  onChange={(e) =>
-                    setNewQuest((p) => ({ ...p, dueDate: e.target.value }))
-                  }
-                  className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-base/60 text-primary text-sm font-[var(--font-ui)] focus:border-accent transition-all duration-[var(--transition)] cursor-pointer"
-                />
+                <input type="date" value={newQuest.dueDate} onChange={(e) => setNewQuest((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
               </label>
               <div className="flex justify-end gap-2.5 mt-2">
-                <Button variant="ghost" onClick={() => setShowAddModal(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onClick={handleAdd}>
-                  Plant Quest 🌱
-                </Button>
+                <Button variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                <Button variant="primary" onClick={handleAdd}>Plant Quest 🌱</Button>
               </div>
             </form>
           </div>

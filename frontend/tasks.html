@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Questify — Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { mint:"#DDF5EF", sky:"#D9F1F6", pink:"#F9DCE8", lavender:"#E8DDF9" },
+        fontFamily: { poppins: ["Poppins","sans-serif"] },
+        borderRadius: { "3xl":"1.75rem", "4xl":"2.25rem" },
+      }
+    }
+  }
+</script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="font-poppins relative overflow-x-hidden">
+
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="q-blob q-blob-1"></div>
+    <div class="q-blob q-blob-2"></div>
+    <div class="q-blob q-blob-3"></div>
+  </div>
+
+  <div class="relative z-10 lg:flex">
+    <div id="questify-sidebar"></div>
+
+    <div class="flex-1 min-w-0">
+      <div id="questify-nav"></div>
+
+      <main class="px-4 sm:px-6 py-6 max-w-4xl mx-auto">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 q-fade-in">
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-700">Your Quests</h1>
+            <p class="text-sm text-slate-500 mt-1">Small steps, steady growth 🌿</p>
+          </div>
+          <button id="btn-add-task" class="q-btn q-btn-primary">+ Add Quest</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-2 mb-5 q-fade-in" style="animation-delay:.05s">
+          <button data-filter="all" class="q-filter-btn q-filter-active">All</button>
+          <button data-filter="active" class="q-filter-btn">Active</button>
+          <button data-filter="done" class="q-filter-btn">Completed</button>
+          <button data-filter="high" class="q-filter-btn">High Priority</button>
+        </div>
+
+        <div id="task-list" class="flex flex-col gap-3 q-fade-in" style="animation-delay:.1s"></div>
+        <div id="task-empty" class="hidden text-center py-16 text-slate-400">
+          <p class="text-4xl mb-3">🌱</p>
+          <p>No quests here yet. Plant one!</p>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div id="modal-backdrop" class="hidden fixed inset-0 bg-slate-900/25 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="glass-card-solid rounded-4xl p-6 sm:p-7 w-full max-w-md">
+      <h3 class="font-semibold text-lg text-slate-700 mb-4">New Quest</h3>
+      <form id="task-form" class="flex flex-col gap-4">
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Title</label>
+          <input id="f-title" type="text" required placeholder="e.g. Finish UI mockups"
+            class="w-full rounded-xl bg-white/70 border border-white/80 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-mint" />
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Notes (optional)</label>
+          <textarea id="f-notes" rows="2" placeholder="Any details..."
+            class="w-full rounded-xl bg-white/70 border border-white/80 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-mint resize-none"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">Priority</label>
+            <select id="f-priority" class="w-full rounded-xl bg-white/70 border border-white/80 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-mint">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-500 mb-1 block">Due date</label>
+            <input id="f-due" type="date" class="w-full rounded-xl bg-white/70 border border-white/80 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-mint" />
+          </div>
+        </div>
+        <div class="flex gap-3 mt-2">
+          <button type="button" id="btn-cancel" class="q-btn q-btn-ghost flex-1">Cancel</button>
+          <button type="submit" class="q-btn q-btn-primary flex-1">Add Quest</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .q-filter-btn {
+      font-size: 0.82rem; font-weight: 500; padding: 0.45rem 1rem;
+      border-radius: 999px; background: rgba(255,255,255,0.5); color: #6b7688;
+      transition: all 0.2s ease;
+    }
+    .q-filter-active { background: linear-gradient(135deg, #DDF5EF, #E8DDF9); color: #3f4756; }
+    #modal-backdrop.flex { display: flex; }
+  </style>
+
+  <script src="js/data.js"></script>
+  <script src="js/mascot.js"></script>
+  <script src="js/nav.js"></script>
+  <script>
+    let currentFilter = "all";
+
+    function priorityFrom(p) { return { low: "Low", medium: "Medium", high: "High" }[p]; }
+
+    function renderTasks() {
+      const all = QData.getTasks();
+      let tasks = all;
+      if (currentFilter === "active") tasks = all.filter(t => !t.done);
+      else if (currentFilter === "done") tasks = all.filter(t => t.done);
+      else if (currentFilter === "high") tasks = all.filter(t => t.priority === "high" && !t.done);
+
+      const list = document.getElementById("task-list");
+      const empty = document.getElementById("task-empty");
+      list.innerHTML = "";
+
+      if (tasks.length === 0) {
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+
+      tasks.forEach(t => {
+        const row = document.createElement("div");
+        row.className = `glass-card rounded-3xl p-4 flex items-start gap-3 ${t.done ? "opacity-60" : ""}`;
+        row.innerHTML = `
+          <div class="q-check mt-0.5 ${t.done ? "checked" : ""}" data-id="${t.id}">
+            ${t.done ? '<svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg>' : ""}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-700 ${t.done ? "line-through" : ""}">${t.title}</p>
+            ${t.notes ? `<p class="text-xs text-slate-500 mt-0.5">${t.notes}</p>` : ""}
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="q-tag q-tag-${t.priority}">${priorityFrom(t.priority)}</span>
+              ${t.due ? `<span class="text-[11px] text-slate-400">Due ${t.due}</span>` : ""}
+            </div>
+          </div>
+          <button class="q-del-btn text-slate-300 hover:text-rose-400 transition p-1" data-id="${t.id}" aria-label="Delete quest">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        `;
+        row.querySelector(".q-check").addEventListener("click", () => {
+          QData.toggleTaskDone(t.id);
+          renderTasks();
+        });
+        row.querySelector(".q-del-btn").addEventListener("click", () => {
+          QData.deleteTask(t.id);
+          renderTasks();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    // Filters
+    document.querySelectorAll(".q-filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll(".q-filter-btn").forEach(b => b.classList.remove("q-filter-active"));
+        btn.classList.add("q-filter-active");
+        renderTasks();
+      });
+    });
+
+    // Modal
+    const backdrop = document.getElementById("modal-backdrop");
+    function openModal() { backdrop.classList.remove("hidden"); backdrop.classList.add("flex"); }
+    function closeModal() { backdrop.classList.add("hidden"); backdrop.classList.remove("flex"); document.getElementById("task-form").reset(); }
+
+    document.getElementById("btn-add-task").addEventListener("click", openModal);
+    document.getElementById("btn-cancel").addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
+
+    document.getElementById("task-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      QData.addTask({
+        title: document.getElementById("f-title").value.trim(),
+        notes: document.getElementById("f-notes").value.trim(),
+        priority: document.getElementById("f-priority").value,
+        due: document.getElementById("f-due").value,
+      });
+      closeModal();
+      renderTasks();
+    });
+
+    renderTasks();
+    window.addEventListener("questify:update", renderTasks);
+  </script>
+</body>
+</html>

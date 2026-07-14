@@ -1,0 +1,207 @@
+:root {
+  --mint: #DDF5EF;
+  --sky: #D9F1F6;
+  --pink: #F9DCE8;
+  --lavender: #E8DDF9;
+}
+
+* { font-family: 'Poppins', sans-serif; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: linear-gradient(135deg, #DDF5EF 0%, #D9F1F6 45%, #E8DDF9 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #3f4756;
+}
+
+/* ---------- Glass cards ---------- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(120, 130, 170, 0.12);
+}
+
+.glass-card-solid {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 30px rgba(120, 130, 170, 0.10);
+}
+
+/* ---------- Organic blob background decorations ---------- */
+.q-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.q-blob-1 { background: var(--pink); width: 320px; height: 320px; top: -80px; right: -60px; animation: qFloat 14s ease-in-out infinite; }
+.q-blob-2 { background: var(--lavender); width: 260px; height: 260px; bottom: 10%; left: -80px; animation: qFloat 18s ease-in-out infinite reverse; }
+.q-blob-3 { background: var(--sky); width: 200px; height: 200px; bottom: -60px; right: 15%; animation: qFloat 16s ease-in-out infinite; }
+
+@keyframes qFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -25px) scale(1.06); }
+}
+
+/* ---------- Leaf decorations ---------- */
+.q-leaf {
+  position: absolute;
+  opacity: 0.5;
+  pointer-events: none;
+  animation: qSway 6s ease-in-out infinite;
+}
+@keyframes qSway {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(6deg) translateY(-6px); }
+}
+
+/* ---------- Sidebar ---------- */
+.q-navlink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #6b7688;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.q-navlink:hover { background: rgba(255,255,255,0.55); color: #3f4756; transform: translateX(2px); }
+.q-navlink-active {
+  background: linear-gradient(135deg, rgba(221,245,239,0.9), rgba(232,221,249,0.9));
+  color: #3f4756;
+  box-shadow: 0 4px 14px rgba(150,160,200,0.18);
+}
+
+@media (max-width: 1023px) {
+  .q-sidebar { transform: translateX(-110%); transition: transform 0.3s ease; }
+  .q-sidebar.q-sidebar-open { transform: translateX(0); }
+}
+
+/* ---------- Progress bars ---------- */
+.q-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.6);
+  overflow: hidden;
+}
+.q-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9ee8cf, #a8dff0, #cdb8f2);
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- Buttons ---------- */
+.q-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  border-radius: 1rem;
+  padding: 0.65rem 1.3rem;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.q-btn-primary {
+  background: linear-gradient(135deg, #b8ecda, #c3e6f2);
+  color: #33413c;
+  box-shadow: 0 6px 18px rgba(140,200,180,0.35);
+}
+.q-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(140,200,180,0.45); }
+.q-btn-ghost {
+  background: rgba(255,255,255,0.55);
+  color: #556;
+}
+.q-btn-ghost:hover { background: rgba(255,255,255,0.8); }
+
+/* ---------- Mascot ---------- */
+.q-mascot-bob { animation: qBob 3.2s ease-in-out infinite; transform-origin: center; }
+@keyframes qBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.q-mascot-cheer { animation: qCheer 0.65s ease; }
+@keyframes qCheer {
+  0% { transform: scale(1) rotate(0); }
+  30% { transform: scale(1.12) rotate(-6deg); }
+  60% { transform: scale(1.05) rotate(6deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.q-eye { animation: qBlink 4.5s ease-in-out infinite; transform-origin: center; }
+@keyframes qBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+.q-eye-closed { transform: scaleY(0.15); }
+
+.q-speech-bubble {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  transform: translateY(-100%) scale(0.9);
+  background: white;
+  color: #4b5563;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  box-shadow: 0 6px 16px rgba(120,130,170,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  white-space: nowrap;
+  z-index: 20;
+}
+.q-speech-visible { opacity: 1; transform: translateY(-110%) scale(1); }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(150,160,200,0.35); border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- Task priority tags ---------- */
+.q-tag { font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; letter-spacing: 0.02em; }
+.q-tag-low { background: #DDF5EF; color: #227a63; }
+.q-tag-medium { background: #D9F1F6; color: #2b6a89; }
+.q-tag-high { background: #F9DCE8; color: #a13c67; }
+
+/* ---------- Checkbox ---------- */
+.q-check {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.6rem;
+  border: 2px solid #c9d3e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.q-check.checked {
+  background: linear-gradient(135deg, #a8e6cf, #a8d8f0);
+  border-color: transparent;
+}
+
+/* ---------- Fade/slide in ---------- */
+.q-fade-in { animation: qFadeIn 0.5s ease both; }
+@keyframes qFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .q-blob, .q-leaf, .q-mascot-bob, .q-eye, .q-progress-fill, .q-fade-in { animation: none !important; transition: none !important; }
+}

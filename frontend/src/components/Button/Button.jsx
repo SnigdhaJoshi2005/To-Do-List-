@@ -13,6 +13,7 @@ const sizes = {
 export default function Button({ variant = "primary", size = "md", children, className = "", ...props }) {
   return (
     <button
+      type="button"
       className={`rounded-[var(--radius-md)] font-semibold transition-all duration-[var(--transition)] active:scale-95 cursor-pointer ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >

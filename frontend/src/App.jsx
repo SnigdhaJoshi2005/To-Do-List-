@@ -1,12 +1,13 @@
 import { Routes, Route, NavLink } from "react-router-dom";
 import { ThemeProvider } from "./pages/ThemeContext";
-import { GameStateProvider } from "./context/GameStateContext";
+import { GameStateProvider, useGame } from "./context/GameStateContext";
 import Dashboard from "./pages/Dashboard";
 import Quests from "./pages/Quests";
 import Calendar from "./pages/Calendar";
 import Garden from "./pages/Garden";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: "home" },
@@ -91,22 +92,42 @@ export default function App() {
   return (
     <ThemeProvider>
       <GameStateProvider>
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="q-blob q-blob-1" />
-          <div className="q-blob q-blob-2" />
-          <div className="q-blob q-blob-3" />
-        </div>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/quests" element={<Quests />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/garden" element={<Garden />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </Layout>
+        <AppContent />
       </GameStateProvider>
     </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { authChecked, user } = useGame();
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-5xl animate-pulse">🌿</span>
+      </div>
+    );
+  }
+
+  if (!user) return <Auth />;
+
+  return (
+    <>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="q-blob q-blob-1" />
+        <div className="q-blob q-blob-2" />
+        <div className="q-blob q-blob-3" />
+      </div>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/quests" element={<Quests />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/garden" element={<Garden />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </Layout>
+    </>
   );
 }

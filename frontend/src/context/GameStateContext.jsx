@@ -27,6 +27,7 @@ function mapTaskToQuest(task) {
 
 export function GameStateProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [quests, setQuests] = useState([]);
   const [stats, setStats] = useState({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0 });
   const [shopItems, setShopItems] = useState([]);
@@ -95,30 +96,37 @@ export function GameStateProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchUser();
-    fetchQuests();
-    fetchStats();
-    fetchShopItems();
-    fetchInventory();
-    fetchEvents();
-  }, [fetchUser, fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents]);
+    (async () => {
+      try {
+        const res = await fetch(`${API}/auth/me`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
+        }
+      } catch {}
+      setAuthChecked(true);
+    })();
+  }, []);
 
   const addQuest = useCallback(async ({ title, difficulty = "sprout", type = "daily", dueDate = null }) => {
-    const res = await fetch(`${API}/tasks`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        title,
-        priority: DIFFICULTY_TO_PRIORITY[difficulty],
-        type,
-        due: dueDate || "",
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setQuests((prev) => [mapTaskToQuest(data.task), ...prev]);
-    }
+    try {
+      const res = await fetch(`${API}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title,
+          priority: DIFFICULTY_TO_PRIORITY[difficulty],
+          type,
+          due: dueDate || "",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setQuests((prev) => [mapTaskToQuest(data.task), ...prev]);
+      }
+    } catch {}
   }, []);
 
   const completeQuest = useCallback(async (questId) => {
@@ -187,6 +195,32 @@ export function GameStateProvider({ children }) {
     }
   }, []);
 
+  const login = useCallback(async (email, password) => {
+    const res = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Login failed");
+    setUser(data.user);
+    await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
+  }, [fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents]);
+
+  const register = useCallback(async (username, email, password) => {
+    const res = await fetch(`${API}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ username, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Registration failed");
+    setUser(data.user);
+    await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
+  }, [fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents]);
+
   const mappedInventory = shopItems.map((item) => {
     const owned = inventory.find((i) => i.itemId === item.itemId);
     return {
@@ -204,6 +238,8 @@ export function GameStateProvider({ children }) {
 
   const value = {
     username: user?.username || "User",
+    user,
+    authChecked,
     quests,
     xp: stats.xpIntoLevel || 0,
     level: stats.level,
@@ -215,6 +251,8 @@ export function GameStateProvider({ children }) {
     events,
     avatar,
     setAvatar,
+    login,
+    register,
     addQuest,
     completeQuest,
     buyItem,

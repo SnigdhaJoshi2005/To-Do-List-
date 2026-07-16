@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameStateContext";
-import Greenhouse from "../components/Greenhouse/Greenhouse";
+import greenhouseImg from "../assets/greenhouse.jpg";
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
 
-export default function Dashboard() {
+export default function Home() {
   const navigate = useNavigate();
   const { quests, xp, level, xpForNextLevel, completeQuest, addQuest, inventory } = useGame();
   const [newQuestTitle, setNewQuestTitle] = useState("");
@@ -23,18 +23,24 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(156,175,136,0.3)]">
-            <span className="text-lg leading-none">🌱</span>
-            <span className="font-bold text-sm">Lv.{level}</span>
+    <div style={{ animation: "fadeIn 0.4s ease-out" }}>
+      <div className="relative -mx-4 sm:-mx-6 -mt-2 mb-6">
+        <img src={greenhouseImg} alt="" className="w-full h-auto object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(156,175,136,0.3)]">
+              <span className="text-lg leading-none">🌱</span>
+              <span className="font-bold text-sm">Lv.{level}</span>
+            </div>
+            <div className="flex-1">
+              <VineBar current={xp} max={xpForNextLevel} label={`${xp}/${xpForNextLevel} XP`} />
+            </div>
           </div>
-          <div className="flex-1">
-            <VineBar current={xp} max={xpForNextLevel} label={`${xp}/${xpForNextLevel} XP`} />
-          </div>
+          <p onClick={() => navigate("/garden")} className="text-white font-semibold text-sm cursor-pointer hover:underline inline-block">
+            Visit your garden →
+          </p>
         </div>
-        <Greenhouse items={inventory} compact onClick={() => navigate("/garden")} />
       </div>
 
       <div className="flex flex-col items-center gap-0.5 py-4 cursor-pointer text-dim hover:text-secondary transition-colors">

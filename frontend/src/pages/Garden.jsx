@@ -13,7 +13,7 @@ export default function Garden() {
   return (
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       <div className="flex items-center justify-between mb-5">
-        <Button variant="ghost" onClick={() => navigate("/")}>← Dashboard</Button>
+        <Button variant="ghost" onClick={() => navigate("/home")}>← Home</Button>
         <h1 className="text-3xl font-semibold text-primary">Your Garden</h1>
         <Button variant="secondary" onClick={() => setShowInventory(!showInventory)}>
           {showInventory ? "Close" : "Inventory"} 🎒

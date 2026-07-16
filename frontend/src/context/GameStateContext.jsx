@@ -217,9 +217,20 @@ export function GameStateProvider({ children }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Registration failed");
-    setUser(data.user);
-    await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
-  }, [fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents]);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await fetch(`${API}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setUser(null);
+    setQuests([]);
+    setStats({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0 });
+    setShopItems([]);
+    setInventory([]);
+    setEvents([]);
+  }, []);
 
   const mappedInventory = shopItems.map((item) => {
     const owned = inventory.find((i) => i.itemId === item.itemId);
@@ -253,6 +264,7 @@ export function GameStateProvider({ children }) {
     setAvatar,
     login,
     register,
+    logout,
     addQuest,
     completeQuest,
     buyItem,

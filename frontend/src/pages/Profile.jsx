@@ -2,7 +2,7 @@ import { useGame } from "../context/GameStateContext";
 import VineBar from "../components/VineBar/VineBar";
 
 export default function Profile() {
-  const { username, level, xp, xpForNextLevel, seeds, streak, totalCompleted, avatar, setAvatar, inventory } = useGame();
+  const { username, level, xp, xpForNextLevel, seeds, streak, totalCompleted, avatar, setAvatar, inventory, logout } = useGame();
 
   const ownedCount = inventory.filter((i) => i.owned).length;
   const placedCount = inventory.filter((i) => i.owned && i.placed).length;
@@ -82,6 +82,13 @@ export default function Profile() {
           ))}
         </div>
       </div>
+
+      <button
+        onClick={logout}
+        className="w-full mt-5 px-6 py-3 bg-red-500/10 border border-red-300 text-red-600 rounded-[var(--radius-xl)] font-semibold text-sm hover:bg-red-500/20 transition-all active:scale-95 cursor-pointer"
+      >
+        Log Out
+      </button>
     </div>
   );
 }

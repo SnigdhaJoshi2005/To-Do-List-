@@ -6,6 +6,7 @@ export default function Auth() {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const update = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }));
@@ -24,6 +25,11 @@ export default function Auth() {
           return;
         }
         await register(form.username, form.email, form.password);
+        setMode("login");
+        setForm({ username: "", email: "", password: "" });
+        setSuccess("Account created! Please log in.");
+        setLoading(false);
+        return;
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -44,7 +50,7 @@ export default function Auth() {
           {["login", "register"].map((m) => (
             <button
               key={m}
-              onClick={() => { setMode(m); setError(""); }}
+              onClick={() => { setMode(m); setError(""); setSuccess(""); }}
               className={`flex-1 py-2 rounded-[var(--radius-sm)] text-sm font-semibold transition-all cursor-pointer ${
                 mode === m ? "bg-surface text-primary shadow-[var(--shadow-sm)]" : "text-secondary hover:text-primary"
               }`}
@@ -57,6 +63,12 @@ export default function Auth() {
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-sm text-red-600 font-medium">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-[var(--radius-md)] text-sm text-green-600 font-medium">
+            {success}
           </div>
         )}
 

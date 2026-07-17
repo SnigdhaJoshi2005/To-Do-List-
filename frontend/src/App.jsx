@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Routes, Route, Navigate, NavLink } from "react-router-dom";
-import { ThemeProvider } from "./pages/ThemeContext";
+import { Routes, Route, Navigate, NavLink, useLocation } from "react-router-dom";
+import { ThemeProvider, useTheme } from "./pages/ThemeContext";
 import { GameStateProvider, useGame } from "./context/GameStateContext";
 import Home from "./pages/Home";
+import dayBg from "./assets/day.png";
+import nightBg from "./assets/night.png";
 import Quests from "./pages/Quests";
 import Calendar from "./pages/Calendar";
 import Garden from "./pages/Garden";
@@ -66,55 +68,69 @@ function Sidebar({ open, onClose }) {
   );
 }
 
-function Layout({ children }) {
+function Layout({ children, homeBg }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="relative z-10 min-h-screen">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className={`relative z-10 min-h-screen ${homeBg ? "bg-cover bg-center bg-no-repeat" : ""}`}
+         style={homeBg ? { backgroundImage: `url(${theme === "dark" ? nightBg : dayBg})` } : undefined}>
+      {homeBg && <div className="fixed inset-0 bg-black/30 z-0" />}
 
-      <header className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
-        <div className="flex items-center justify-between gap-4 px-5 py-3">
-          <div className="flex items-center gap-3">
+      <div className="relative z-20">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+        <header className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
+          <div className="flex items-center justify-between gap-4 px-5 py-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /></svg>
+              </button>
+              <NavLink to="/home" className="flex items-center gap-2 select-none">
+                <span className="text-2xl">🌿</span>
+                <span className="font-semibold text-lg tracking-tight text-primary">Questify</span>
+              </NavLink>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-1">
+              {NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                      isActive
+                        ? "bg-accent/10 text-accent"
+                        : "text-secondary hover:bg-muted hover:text-primary"
+                    }`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer"
+              onClick={toggleTheme}
+              className="p-2 rounded-xl hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer text-lg"
+              aria-label="Toggle theme"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /></svg>
+              {theme === "light" ? "🌙" : "☀️"}
             </button>
-            <NavLink to="/home" className="flex items-center gap-2 select-none">
-              <span className="text-2xl">🌿</span>
-              <span className="font-semibold text-lg tracking-tight text-primary">Questify</span>
+
+            <NavLink to="/profile" className="flex items-center gap-2 bg-muted rounded-full pl-1.5 pr-3 py-1.5 hover:bg-accent/10 transition-colors">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-lavender flex items-center justify-center text-xs font-semibold text-white">U</div>
+              <span className="text-sm font-medium text-secondary hidden sm:inline">Profile</span>
             </NavLink>
           </div>
-
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-200 ${
-                    isActive
-                      ? "bg-accent/10 text-accent"
-                      : "text-secondary hover:bg-muted hover:text-primary"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <NavLink to="/profile" className="flex items-center gap-2 bg-muted rounded-full pl-1.5 pr-3 py-1.5 hover:bg-accent/10 transition-colors">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-lavender flex items-center justify-center text-xs font-semibold text-white">U</div>
-            <span className="text-sm font-medium text-secondary hidden sm:inline">Profile</span>
-          </NavLink>
-        </div>
-      </header>
-      <main className="relative z-10 px-4 sm:px-6 py-2 max-w-7xl mx-auto">
-        {children}
-      </main>
+        </header>
+        <main className="relative z-10 px-4 sm:px-6 py-2 max-w-7xl mx-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
@@ -131,6 +147,8 @@ export default function App() {
 
 function AppContent() {
   const { authChecked, user } = useGame();
+  const location = useLocation();
+  const homeBg = location.pathname === "/home";
 
   if (!authChecked) {
     return (
@@ -149,7 +167,7 @@ function AppContent() {
         <div className="q-blob q-blob-2" />
         <div className="q-blob q-blob-3" />
       </div>
-      <Layout>
+      <Layout homeBg={homeBg}>
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />

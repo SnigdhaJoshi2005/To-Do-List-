@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameStateContext";
+import { useTheme } from "./ThemeContext";
+import dayGreenhouse from "../assets/daygreenhouse.png";
+import nightGreenhouse from "../assets/nightgreenhouse.png";
 
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
@@ -8,6 +11,7 @@ import Button from "../components/Button/Button";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const {
     quests,
     xp,
@@ -35,7 +39,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-7rem)] py-4" style={{ animation: "fadeIn 0.4s ease-out" }}>
+    <div
+      className="flex flex-col min-h-[calc(100vh-7rem)] py-4"
+      style={{ animation: "fadeIn 0.4s ease-out" }}
+    >
       <div className="flex items-center gap-4 mb-20 shrink-0">
         <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(156,175,136,0.3)]">
           <span className="text-lg leading-none">🌱</span>
@@ -51,6 +58,13 @@ export default function Home() {
       </div>
 
       <div className="flex-1 flex flex-col justify-end shrink-0">
+        <div className="flex items-center justify-center pt-4 mb-2">
+          <img
+            src={theme === "dark" ? nightGreenhouse : dayGreenhouse}
+            alt="Greenhouse"
+            className="w-[768px] h-auto"
+          />
+        </div>
         <div className="flex items-center justify-center py-6">
           <p
             onClick={() => navigate("/garden")}
@@ -89,8 +103,12 @@ export default function Home() {
               {dailyQuests.length === 0 ? (
                 <div className="text-center py-10 text-secondary bg-white/10 backdrop-blur-sm rounded-[var(--radius-lg)] border border-white/20 border-dashed">
                   <span className="text-5xl block mb-3">🌻</span>
-                  <p className="font-semibold text-white">All quests complete!</p>
-                  <p className="text-sm text-white/60 mt-1">Add a new one below</p>
+                  <p className="font-semibold text-white">
+                    All quests complete!
+                  </p>
+                  <p className="text-sm text-white/60 mt-1">
+                    Add a new one below
+                  </p>
                 </div>
               ) : (
                 dailyQuests.map((q) => (

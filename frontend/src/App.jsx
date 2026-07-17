@@ -9,8 +9,6 @@ import {
 import { ThemeProvider, useTheme } from "./pages/ThemeContext";
 import { GameStateProvider, useGame } from "./context/GameStateContext";
 import Home from "./pages/Home";
-import dayBg from "./assets/day.png";
-import nightBg from "./assets/night.png";
 import Quests from "./pages/Quests";
 import Calendar from "./pages/Calendar";
 import Garden from "./pages/Garden";
@@ -138,20 +136,11 @@ function Layout({ children, homeBg }) {
 
   return (
     <div className="relative z-10 min-h-screen">
-      {homeBg && (
-        <>
-          <div
-            className="fixed inset-x-0 top-0 h-screen bg-cover bg-center bg-no-repeat z-0"
-            style={{ backgroundImage: `url(${theme === "dark" ? nightBg : dayBg})` }}
-          />
-          <div className="fixed inset-0 bg-black/30 z-0" />
-        </>
-      )}
 
       <div className="relative z-20">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <header className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
+        {!homeBg && <header className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
           <div className="flex items-center justify-between gap-4 px-5 py-3">
             <div className="flex items-center gap-3">
               <button
@@ -221,7 +210,7 @@ function Layout({ children, homeBg }) {
               </span>
             </NavLink>
           </div>
-        </header>
+        </header>}
         <main className="relative z-10 px-4 sm:px-6 py-2 max-w-7xl mx-auto">
           {children}
         </main>

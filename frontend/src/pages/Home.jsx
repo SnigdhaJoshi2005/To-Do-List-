@@ -139,7 +139,7 @@ export default function Home() {
         {/* Level / XP Bar */}
         <div className="relative z-20 px-6 sm:px-8 pt-4 pb-2">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(156,175,136,0.3)]">
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(184,164,114,0.3)]">
               <span className="text-lg leading-none">🌱</span>
               <span className="font-bold text-sm">Lv.{level}</span>
             </div>
@@ -288,7 +288,7 @@ export default function Home() {
 
           <form className="flex gap-2.5 mt-5" onSubmit={handleQuickAdd}>
             <input
-              className="flex-1 px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-surface text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all placeholder:text-secondary"
+              className="flex-1 px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-surface text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all placeholder:text-secondary"
               type="text"
               placeholder="Add a new quest..."
               value={newQuestTitle}

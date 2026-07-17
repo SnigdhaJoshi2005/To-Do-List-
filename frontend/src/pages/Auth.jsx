@@ -76,18 +76,18 @@ export default function Auth() {
           {mode === "register" && (
             <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
               <span>Username</span>
-              <input type="text" value={form.username} onChange={update("username")} placeholder="Choose a username" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all" />
+              <input type="text" value={form.username} onChange={update("username")} placeholder="Choose a username" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
             </label>
           )}
           <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
             <span>Email</span>
-            <input type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" autoFocus={mode === "login"} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all" />
+            <input type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" autoFocus={mode === "login"} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
           </label>
           <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
             <span>Password</span>
-            <input type="password" value={form.password} onChange={update("password")} placeholder="Min 6 characters" className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all" />
+            <input type="password" value={form.password} onChange={update("password")} placeholder="Min 6 characters" className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
           </label>
-          <button type="submit" disabled={loading} className="mt-2 px-6 py-3 bg-accent text-white rounded-[var(--radius-md)] font-semibold text-sm hover:bg-accent-hover shadow-[0_2px_8px_rgba(156,175,136,0.3)] transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="submit" disabled={loading} className="mt-2 px-6 py-3 bg-accent text-white rounded-[var(--radius-md)] font-semibold text-sm hover:bg-accent-hover shadow-[0_2px_8px_rgba(184,164,114,0.3)] transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             {loading ? "..." : mode === "login" ? "Log In" : "Create Account"}
           </button>
         </form>

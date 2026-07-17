@@ -17,7 +17,7 @@ export default function Shop() {
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-3xl font-semibold text-primary">Shop</h1>
-        <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full font-bold text-base shadow-[0_2px_8px_rgba(156,175,136,0.3)]">
+        <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full font-bold text-base shadow-[0_2px_8px_rgba(184,164,114,0.3)]">
           <span className="text-lg leading-none">🌰</span>
           <span>{seeds}</span>
         </div>

@@ -18,7 +18,7 @@ export default function Profile() {
           </div>
           <div className="flex-1">
             <h2 className="text-[28px] font-semibold text-primary mb-1">{username}</h2>
-            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-accent to-accent-hover text-white px-3 py-1 rounded-xl text-xs font-bold shadow-[0_2px_6px_rgba(156,175,136,0.25)]">
+            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-accent to-accent-hover text-white px-3 py-1 rounded-xl text-xs font-bold shadow-[0_2px_6px_rgba(184,164,114,0.25)]">
               🌱 Lv.{level}
             </span>
           </div>

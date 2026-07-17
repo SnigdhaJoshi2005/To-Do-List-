@@ -58,7 +58,7 @@ export default function Quests() {
               key={f.key}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                 filter === f.key
-                  ? "bg-accent text-white border-accent shadow-[0_2px_8px_rgba(156,175,136,0.3)]"
+                  ? "bg-accent text-white border-accent shadow-[0_2px_8px_rgba(184,164,114,0.3)]"
                   : "bg-transparent text-secondary border-border hover:border-accent hover:text-accent hover:bg-accent/5"
               }`}
               onClick={() => setFilter(f.key)}
@@ -99,7 +99,7 @@ export default function Quests() {
             <form onSubmit={handleAdd} className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Title</span>
-                <input type="text" value={newQuest.title} onChange={(e) => setNewQuest((p) => ({ ...p, title: e.target.value }))} placeholder="What do you need to do?" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(156,175,136,0.1)] transition-all" />
+                <input type="text" value={newQuest.title} onChange={(e) => setNewQuest((p) => ({ ...p, title: e.target.value }))} placeholder="What do you need to do?" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
               </label>
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Difficulty</span>

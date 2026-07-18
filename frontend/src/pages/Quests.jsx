@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useGame } from "../context/GameStateContext";
 import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
+import { RiSeedlingLine } from "react-icons/ri";
 
 export default function Quests() {
   const { quests, completeQuest, addQuest } = useGame();
@@ -104,7 +105,7 @@ export default function Quests() {
               <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
                 <span>Difficulty</span>
                 <select value={newQuest.difficulty} onChange={(e) => setNewQuest((p) => ({ ...p, difficulty: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer">
-                  <option value="seedling">🌱 Seedling</option>
+                   <option value="seedling">Seedling</option>
                   <option value="sprout">🌿 Sprout</option>
                   <option value="bloom">🌺 Bloom</option>
                 </select>
@@ -122,7 +123,7 @@ export default function Quests() {
               </label>
               <div className="flex justify-end gap-2.5 mt-2">
                 <Button variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button variant="primary" onClick={handleAdd}>Plant Quest 🌱</Button>
+                 <Button variant="primary" onClick={handleAdd}>Plant Quest <RiSeedlingLine className="inline" /></Button>
               </div>
             </form>
           </div>

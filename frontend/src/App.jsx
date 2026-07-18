@@ -6,7 +6,7 @@ import {
   NavLink,
   useLocation,
 } from "react-router-dom";
-import { ThemeProvider, useTheme } from "./pages/ThemeContext";
+import { ThemeProvider } from "./pages/ThemeContext";
 import { GameStateProvider, useGame } from "./context/GameStateContext";
 import Home from "./pages/Home";
 import Quests from "./pages/Quests";
@@ -15,6 +15,7 @@ import Garden from "./pages/Garden";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import ThemeToggle from "./components/ThemeToggle/ThemeToggle";
 
 const NAV_ITEMS = [
   { to: "/home", label: "Home", icon: "home" },
@@ -132,7 +133,6 @@ function Sidebar({ open, onClose }) {
 
 function Layout({ children, homeBg }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="relative z-10 min-h-screen">
@@ -190,13 +190,7 @@ function Layout({ children, homeBg }) {
               ))}
             </nav>
 
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer text-lg"
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? "🌙" : "☀️"}
-            </button>
+            <ThemeToggle variant="default" />
 
             <NavLink
               to="/profile"

@@ -29,27 +29,6 @@ body {
   overflow-x: hidden;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background: linear-gradient(135deg, #120c1c 0%, #1a1028 50%, #180e24 100%);
-  }
-
-  :root {
-    --color-accent: #b07cc6;
-    --color-accent-hover: #9a68b0;
-    --color-accent-alt: #e88fb8;
-    --color-accent-alt-hover: #d47aa5;
-    --color-primary: #eee8f0;
-    --color-secondary: #a898b8;
-    --color-dim: #7a6e8a;
-    --color-surface: #1e1428;
-    --color-muted: #160e22;
-    --color-border: #2e2240;
-    --color-base: #120c1c;
-    --color-lavender: #d4b0f0;
-  }
-}
-
 [data-theme="dark"] {
   --color-accent: #b07cc6;
   --color-accent-hover: #9a68b0;
@@ -58,29 +37,21 @@ body {
   --color-primary: #eee8f0;
   --color-secondary: #a898b8;
   --color-dim: #7a6e8a;
-  --color-surface: #1e1428;
-  --color-muted: #160e22;
-  --color-border: #2e2240;
-  --color-base: #120c1c;
+  --color-surface: #1a211b;
+  --color-muted: #141a15;
+  --color-border: #2a332c;
+  --color-base: #0f1410;
   --color-lavender: #d4b0f0;
 }
 
 [data-theme="dark"] body {
-  background: linear-gradient(135deg, #120c1c 0%, #1a1028 50%, #180e24 100%);
+  background: linear-gradient(135deg, #0f1410 0%, #1a211b 50%, #15101e 100%);
 }
 
 .glass-card {
   background: rgba(255, 255, 255, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
-}
-
-@media (prefers-color-scheme: dark) {
-  .glass-card {
-    background: rgba(30, 20, 40, 0.85);
-    border: 1px solid rgba(46, 34, 64, 0.6);
-    backdrop-filter: blur(12px);
-  }
 }
 
 [data-theme="dark"] .glass-card {

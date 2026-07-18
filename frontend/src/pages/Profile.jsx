@@ -1,5 +1,8 @@
 import { useGame } from "../context/GameStateContext";
 import VineBar from "../components/VineBar/VineBar";
+import { RiSeedlingLine } from "react-icons/ri";
+import { FaFire, FaCheck } from "react-icons/fa";
+import { GiFlowerPot } from "react-icons/gi";
 
 export default function Profile() {
   const { username, level, xp, xpForNextLevel, seeds, streak, totalCompleted, avatar, setAvatar, inventory, logout } = useGame();
@@ -19,7 +22,7 @@ export default function Profile() {
           <div className="flex-1">
             <h2 className="text-[28px] font-semibold text-primary mb-1">{username}</h2>
             <span className="inline-flex items-center gap-1 bg-gradient-to-r from-accent to-accent-hover text-white px-3 py-1 rounded-xl text-xs font-bold shadow-[0_2px_6px_rgba(184,164,114,0.25)]">
-              🌱 Lv.{level}
+              <RiSeedlingLine className="inline" /> Lv.{level}
             </span>
           </div>
         </div>
@@ -28,13 +31,13 @@ export default function Profile() {
         </div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-3">
           {[
-            { icon: "🌰", value: seeds, label: "Seeds" },
-            { icon: "🔥", value: streak, label: "Day Streak" },
-            { icon: "✅", value: totalCompleted, label: "Completed" },
-            { icon: "🏡", value: `${placedCount}/${ownedCount}`, label: "Items Placed" },
+            { icon: <RiSeedlingLine className="text-2xl" />, value: seeds, label: "Seeds" },
+            { icon: <FaFire className="text-2xl" />, value: streak, label: "Day Streak" },
+            { icon: <FaCheck className="text-2xl" />, value: totalCompleted, label: "Completed" },
+            { icon: <GiFlowerPot className="text-2xl" />, value: `${placedCount}/${ownedCount}`, label: "Items Placed" },
           ].map((s) => (
             <div key={s.label} className="text-center py-4 bg-muted/80 rounded-[var(--radius-lg)] border border-border/30 transition-all duration-200 hover:shadow-[var(--shadow-sm)] hover:-translate-y-px">
-              <span className="block text-2xl mb-1.5">{s.icon}</span>
+              <span className="block mb-1.5 text-accent">{s.icon}</span>
               <span className="block text-xl font-extrabold text-primary tabular-nums">{s.value}</span>
               <span className="text-[11px] text-dim font-semibold uppercase tracking-wide">{s.label}</span>
             </div>
@@ -77,7 +80,7 @@ export default function Profile() {
             <div key={item.id} className="flex flex-col items-center gap-1.5 py-4 bg-muted/80 rounded-[var(--radius-lg)] border border-border/30 transition-all duration-200 hover:shadow-[var(--shadow-sm)] hover:-translate-y-px">
               <span className="text-[28px] leading-none">{item.icon}</span>
               <span className="text-xs font-bold text-primary">{item.name}</span>
-              <span className="text-[11px] text-dim font-semibold">{item.placed ? "🌿 Placed" : "📦 Stored"}</span>
+              <span className="text-[11px] text-dim font-semibold">{item.placed ? <><GiFlowerPot className="inline" /> Placed</> : "📦 Stored"}</span>
             </div>
           ))}
         </div>

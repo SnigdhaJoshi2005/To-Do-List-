@@ -172,12 +172,12 @@ export function GameStateProvider({ children }) {
     );
   }, []);
 
-  const addEvent = useCallback(async ({ title, date, time = "", color = "mint" }) => {
+  const addEvent = useCallback(async ({ title, date, time = "", color = "mint", recurring = "none" }) => {
     const res = await fetch(`${API}/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ title, date, time, color }),
+      body: JSON.stringify({ title, date, time, color, recurring }),
     });
     if (res.ok) {
       const data = await res.json();

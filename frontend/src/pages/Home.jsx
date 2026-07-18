@@ -10,6 +10,8 @@ import bushNight from "../assets/bushnight.png";
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
+import ThemeToggle from "../components/ThemeToggle/ThemeToggle";
+import { RiSeedlingLine } from "react-icons/ri";
 
 const NAV_ITEMS = [
   { to: "/home", label: "Home" },
@@ -21,7 +23,7 @@ const NAV_ITEMS = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const {
     quests,
     xp,
@@ -114,13 +116,7 @@ export default function Home() {
               ))}
             </nav>
 
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-xl hover:bg-white/10 transition-colors text-white/80 hover:text-white cursor-pointer text-lg"
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? "🌙" : "☀️"}
-            </button>
+            <ThemeToggle variant="light" />
 
             <NavLink
               to="/profile"
@@ -140,7 +136,7 @@ export default function Home() {
         <div className="relative z-20 px-6 sm:px-8 pt-4 pb-2">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 bg-gradient-to-r from-accent to-accent-hover text-white pl-3.5 pr-4 py-2 rounded-full shrink-0 shadow-[0_2px_8px_rgba(184,164,114,0.3)]">
-              <span className="text-lg leading-none">🌱</span>
+              <RiSeedlingLine className="text-lg" />
               <span className="font-bold text-sm">Lv.{level}</span>
             </div>
             <div className="flex-1">
@@ -295,7 +291,7 @@ export default function Home() {
               onChange={(e) => setNewQuestTitle(e.target.value)}
             />
             <Button variant="primary" size="md" onClick={handleQuickAdd}>
-              Plant 🌱
+              Plant <RiSeedlingLine className="inline" />
             </Button>
           </form>
         </div>

@@ -1,5 +1,7 @@
+import { RiSeedlingLine } from "react-icons/ri";
+
 const difficultyBadge = {
-  seedling: { icon: "🌱", label: "Seedling", color: "bg-green-100 text-green-700" },
+  seedling: { icon: <RiSeedlingLine />, label: "Seedling", color: "bg-green-100 text-green-700" },
   sprout: { icon: "🌿", label: "Sprout", color: "bg-emerald-100 text-emerald-700" },
   bloom: { icon: "🌺", label: "Bloom", color: "bg-pink-100 text-pink-700" },
 };

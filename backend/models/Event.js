@@ -26,6 +26,11 @@ const eventSchema = new mongoose.Schema(
       enum: ["mint", "sky", "pink", "lavender"],
       default: "mint",
     },
+    recurring: {
+      type: String,
+      enum: ["none", "yearly"],
+      default: "none",
+    },
   },
   { timestamps: true }
 );

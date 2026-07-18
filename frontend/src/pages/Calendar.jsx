@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { useGame } from "../context/GameStateContext";
 import Button from "../components/Button/Button";
 import { useTheme } from "./ThemeContext";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { PiFlowerLotusDuotone } from "react-icons/pi";
+import { RiSeedlingLine } from "react-icons/ri";
 
 const COLOR_HEX = { mint: "#8FD9BE", sky: "#8FCBE0", pink: "#E8A7C2", lavender: "#C3A9EE" };
 const COLOR_EMOJI = { mint: "🌱", sky: "💧", pink: "🌸", lavender: "🌿" };
@@ -16,8 +19,11 @@ export default function Calendar() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [formTitle, setFormTitle] = useState("");
   const [formDate, setFormDate] = useState("");
-  const [formTime, setFormTime] = useState("");
+  const [timeHour, setTimeHour] = useState("12");
+  const [timeMin, setTimeMin] = useState("00");
+  const [timePeriod, setTimePeriod] = useState("AM");
   const [chosenColor, setChosenColor] = useState("mint");
+  const [formRecurring, setFormRecurring] = useState("none");
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -32,21 +38,50 @@ export default function Calendar() {
     for (let i = 0; i < firstDay; i++) days.push({ empty: true, key: `empty-${i}` });
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      days.push({ day: d, dateStr, key: dateStr, isToday: dateStr === todayStr, events: events.filter((e) => e.date === dateStr) });
+      days.push({ day: d, dateStr, key: dateStr, isToday: dateStr === todayStr, events: events.filter((e) => e.date === dateStr || (e.recurring === "yearly" && e.date.slice(5) === dateStr.slice(5))) });
     }
     return days;
   }, [year, month, events, todayStr]);
 
   const upcoming = useMemo(() => {
+    const yearStr = String(year);
     return events
-      .filter((e) => e.date >= todayStr)
-      .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")))
+      .filter((e) => {
+        if (e.date >= todayStr) return true;
+        if (e.recurring === "yearly") {
+          const md = e.date.slice(5);
+          const todayMd = todayStr.slice(5);
+          if (md >= todayMd && e.date.slice(0, 4) < yearStr) return true;
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        const aDate = a.recurring === "yearly" ? `${year}-${a.date.slice(5)}` : a.date;
+        const bDate = b.recurring === "yearly" ? `${year}-${b.date.slice(5)}` : b.date;
+        return (aDate + (a.time || "")).localeCompare(bDate + (b.time || ""));
+      })
       .slice(0, 6);
-  }, [events, todayStr]);
+  }, [events, todayStr, year]);
 
   const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
   const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
   const goToday = () => setViewDate(new Date());
+
+  const parseTime = (t) => {
+    if (!t) return { h: "12", m: "00", p: "AM" };
+    const [hh, mm] = t.split(":");
+    const hour = parseInt(hh, 10);
+    const p = hour >= 12 ? "PM" : "AM";
+    const h = hour === 0 ? "12" : hour > 12 ? String(hour - 12) : String(hour);
+    return { h, m: mm || "00", p };
+  };
+
+  const buildTime = (h, m, p) => {
+    let hour = parseInt(h, 10);
+    if (p === "PM" && hour !== 12) hour += 12;
+    if (p === "AM" && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${m}`;
+  };
 
   const handleDayClick = (cell) => {
     if (cell.events.length > 0) {
@@ -61,8 +96,11 @@ export default function Calendar() {
     setEditingEvent(null);
     setFormDate(dateStr || todayStr);
     setFormTitle("");
-    setFormTime("");
+    setTimeHour("12");
+    setTimeMin("00");
+    setTimePeriod("AM");
     setChosenColor("mint");
+    setFormRecurring("none");
     setShowAddModal(true);
   };
 
@@ -70,8 +108,12 @@ export default function Calendar() {
     setEditingEvent(event);
     setFormDate(event.date);
     setFormTitle(event.title);
-    setFormTime(event.time || "");
+    const t = parseTime(event.time);
+    setTimeHour(t.h);
+    setTimeMin(t.m);
+    setTimePeriod(t.p);
     setChosenColor(event.color || "mint");
+    setFormRecurring(event.recurring || "none");
     setShowDayModal(false);
     setShowAddModal(true);
   };
@@ -82,7 +124,7 @@ export default function Calendar() {
     if (editingEvent) {
       deleteEvent(editingEvent._id);
     }
-    addEvent({ title: formTitle.trim(), date: formDate, time: formTime, color: chosenColor });
+    addEvent({ title: formTitle.trim(), date: formDate, time: buildTime(timeHour, timeMin, timePeriod), color: chosenColor, recurring: formRecurring });
     setShowAddModal(false);
     setEditingEvent(null);
   };
@@ -108,64 +150,67 @@ export default function Calendar() {
   return (
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <button onClick={prevMonth} className="p-2 rounded-xl bg-surface hover:bg-muted transition-colors border border-border/50 cursor-pointer">
-            <svg className="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 6-6 6 6 6" /></svg>
+      <div className="relative flex items-center justify-between mb-6">
+        <Button variant="ghost" size="sm" onClick={goToday} className="flex items-center gap-1.5"><PiFlowerLotusDuotone className="w-4 h-4" /> Today</Button>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
+          <button onClick={prevMonth} className="p-2 rounded-xl transition-colors cursor-pointer">
+            <IoIosArrowBack className="w-5 h-5 text-secondary hover:text-primary" />
           </button>
           <h1 className="text-xl sm:text-2xl font-semibold text-primary min-w-[180px] text-center flex items-center gap-2">
             <span>🌿</span> {title} <span>🌿</span>
           </h1>
-          <button onClick={nextMonth} className="p-2 rounded-xl bg-surface hover:bg-muted transition-colors border border-border/50 cursor-pointer">
-            <svg className="w-5 h-5 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 6 6 6-6 6" /></svg>
+          <button onClick={nextMonth} className="p-2 rounded-xl transition-colors cursor-pointer">
+            <IoIosArrowForward className="w-5 h-5 text-secondary hover:text-primary" />
           </button>
         </div>
-        <Button variant="ghost" size="sm" onClick={goToday}>🌱 Today</Button>
+        <div className="w-[100px]" />
       </div>
 
-      {/* Calendar Grid */}
-      <div className="bg-surface border border-border/40 rounded-[var(--radius-xl)] p-4 sm:p-6 max-w-lg mx-auto" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
-        <div className="grid grid-cols-7 gap-2 mb-2">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-dim py-1">{d}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {calendarDays.map((cell) =>
-            cell.empty ? (
-              <div key={cell.key} className="aspect-square" />
+      {/* Calendar + Upcoming Layout */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Calendar Grid */}
+        <div className="lg:w-[65%] bg-surface border border-border/40 rounded-[var(--radius-xl)] p-3 sm:p-5" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
+          <div className="grid grid-cols-7 gap-3 mb-3">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <div key={d} className="text-center text-sm font-medium text-dim py-1">{d}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-3">
+            {calendarDays.map((cell) =>
+              cell.empty ? (
+              <div key={cell.key} className="aspect-[5/4]" />
             ) : (
               <button
                 key={cell.key}
                 onClick={() => handleDayClick(cell)}
-                className={`aspect-square rounded-2xl flex flex-col items-center justify-start p-1.5 text-sm cursor-pointer transition-all duration-200 border-none ${
-                  cell.isToday
-                    ? "bg-gradient-to-br from-accent/20 to-accent-alt/20 font-semibold text-primary ring-2 ring-accent/30"
-                    : cell.events.length > 0
-                      ? "bg-muted/80 hover:bg-muted text-secondary"
-                      : "bg-surface hover:bg-muted text-secondary"
-                }`}
-              >
-                <span className="flex items-center gap-0.5">
-                  {cell.isToday && <span className="text-[10px]">🌱</span>}
-                  {cell.day}
-                </span>
-                <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
-                  {cell.events.slice(0, 3).map((ev, i) => (
-                    <span key={i} className="text-[8px] leading-none">{COLOR_EMOJI[ev.color] || "🌱"}</span>
-                  ))}
-                  {cell.events.length > 3 && (
-                    <span className="text-[8px] text-dim leading-none">+{cell.events.length - 3}</span>
-                  )}
-                </div>
-              </button>
-            )
-          )}
+                className={`aspect-[5/4] rounded-2xl flex flex-col items-center justify-start p-2.5 text-base cursor-pointer transition-all duration-200 border-none ${
+                    cell.isToday
+                      ? "bg-gradient-to-br from-accent/20 to-accent-alt/20 font-semibold text-primary ring-2 ring-accent/30"
+                      : cell.events.length > 0
+                        ? "bg-muted/80 hover:bg-muted text-secondary"
+                        : "bg-surface hover:bg-muted text-secondary"
+                  }`}
+                >
+                  <span className="flex items-center gap-0.5">
+                    {cell.isToday && <RiSeedlingLine className="text-[10px]" />}
+                    {cell.day}
+                  </span>
+                  <div className="flex gap-1 mt-1 flex-wrap justify-center">
+                    {cell.events.slice(0, 3).map((ev, i) => (
+                      <span key={i} className="text-[10px] leading-none">{COLOR_EMOJI[ev.color] || "🌱"}</span>
+                    ))}
+                    {cell.events.length > 3 && (
+                      <span className="text-[10px] text-dim leading-none">+{cell.events.length - 3}</span>
+                    )}
+                  </div>
+                </button>
+              )
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Upcoming Events */}
-      <section className="bg-surface border border-border/40 rounded-[var(--radius-xl)] p-6 mt-6" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.1s" }}>
+        {/* Upcoming Events */}
+        <section className="lg:w-[35%] bg-surface border border-border/40 rounded-[var(--radius-xl)] p-6" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.1s" }}>
         <h2 className="font-semibold text-primary mb-4 flex items-center gap-2">
           <span>🌻</span> Upcoming
         </h2>
@@ -186,6 +231,7 @@ export default function Calendar() {
           </div>
         )}
       </section>
+      </div>
 
       {/* Day View Modal */}
       {showDayModal && selectedDay && (
@@ -228,7 +274,7 @@ export default function Calendar() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm p-4" onClick={() => { setShowAddModal(false); setEditingEvent(null); }}>
           <div className="bg-surface rounded-[var(--radius-xl)] p-6 sm:p-7 w-full max-w-sm shadow-[var(--shadow-lg)] border border-border/50" onClick={(e) => e.stopPropagation()} style={{ animation: "scaleIn 0.3s ease-out" }}>
             <div className="flex items-center gap-2 mb-4">
-              <span>{editingEvent ? "✏️" : "🌱"}</span>
+              <span>{editingEvent ? "✏️" : <RiSeedlingLine />}</span>
               <h3 className="font-semibold text-lg text-primary">{editingEvent ? "Edit Event" : "Plant a New Event"}</h3>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -245,8 +291,22 @@ export default function Calendar() {
                 </div>
                 <div>
                   <label className="text-xs text-dim mb-1 block">Time (optional)</label>
-                  <input type="time" value={formTime} onChange={(e) => setFormTime(e.target.value)}
-                    className="w-full rounded-xl bg-muted border border-border px-4 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent" />
+                  <div className="flex gap-1.5">
+                    <select value={timeHour} onChange={(e) => setTimeHour(e.target.value)}
+                      className="w-16 rounded-xl bg-muted border border-border px-2 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer appearance-none text-center">
+                      {["12","1","2","3","4","5","6","7","8","9","10","11"].map((h) => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                    <span className="text-secondary self-center font-semibold">:</span>
+                    <select value={timeMin} onChange={(e) => setTimeMin(e.target.value)}
+                      className="w-16 rounded-xl bg-muted border border-border px-2 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer appearance-none text-center">
+                      {["00","05","10","15","20","25","30","35","40","45","50","55"].map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                    <select value={timePeriod} onChange={(e) => setTimePeriod(e.target.value)}
+                      className="w-16 rounded-xl bg-muted border border-border px-2 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer appearance-none text-center">
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>
@@ -264,9 +324,16 @@ export default function Calendar() {
                   ))}
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setFormRecurring(formRecurring === "yearly" ? "none" : "yearly")}
+                  className={`relative w-10 h-6 rounded-full transition-colors duration-200 cursor-pointer ${formRecurring === "yearly" ? "bg-accent" : "bg-border"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${formRecurring === "yearly" ? "translate-x-4" : ""}`} />
+                </button>
+                <span className="text-sm text-secondary">Repeat every year</span>
+              </div>
               <div className="flex gap-3 mt-2">
                 <Button type="button" variant="ghost" className="flex-1" onClick={() => { setShowAddModal(false); setEditingEvent(null); }}>Cancel</Button>
-                <Button type="submit" variant="primary" className="flex-1">{editingEvent ? "Update" : "Plant"} 🌱</Button>
+                 <Button type="submit" variant="primary" className="flex-1">{editingEvent ? "Update" : "Plant"} <RiSeedlingLine className="inline" /></Button>
               </div>
             </form>
           </div>

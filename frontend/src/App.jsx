@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Routes,
   Route,
@@ -133,6 +133,24 @@ function Sidebar({ open, onClose }) {
 
 function Layout({ children, homeBg }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      if (y < 10) {
+        setShowHeader(true);
+      } else if (y > lastScrollY.current + 5) {
+        setShowHeader(false);
+      } else if (y < lastScrollY.current - 5) {
+        setShowHeader(true);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="relative z-10 min-h-screen">
@@ -140,7 +158,7 @@ function Layout({ children, homeBg }) {
       <div className="relative z-20">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {!homeBg && <header className="sticky top-0 z-40 px-4 sm:px-6 pt-4">
+        {!homeBg && <header className={`fixed top-0 left-0 right-0 z-40 px-4 sm:px-6 pt-4 transition-transform duration-300 ease-in-out ${showHeader ? "translate-y-0" : "-translate-y-full"}`}>
           <div className="flex items-center justify-between gap-4 px-5 py-3">
             <div className="flex items-center gap-3">
               <button
@@ -205,7 +223,7 @@ function Layout({ children, homeBg }) {
             </NavLink>
           </div>
         </header>}
-        <main className="relative z-10 px-4 sm:px-6 py-2 max-w-7xl mx-auto">
+        <main className={`relative z-10 px-4 sm:px-6 pb-2 max-w-7xl mx-auto ${homeBg ? "" : "pt-20"}`}>
           {children}
         </main>
       </div>

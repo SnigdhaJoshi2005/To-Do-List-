@@ -26,20 +26,20 @@ export default function ThemeToggle({ variant = "default" }) {
     <button
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className={`relative inline-flex items-center w-[120px] h-14 rounded-[28px] border transition-all duration-300 cursor-pointer shrink-0 ${s.track}`}
+      className={`relative inline-flex items-center w-[88px] h-10 rounded-[20px] border transition-all duration-300 cursor-pointer shrink-0 ${s.track}`}
     >
-      <span className="absolute inset-[5px] rounded-[22px] bg-surface/40 shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)]" />
+      <span className="absolute inset-[4px] rounded-[16px] bg-surface/40 shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)]" />
 
-      <span className="absolute left-[16px] top-1/2 -translate-y-1/2 z-10">
-        <IoSunnyOutline className={`w-6 h-6 transition-colors duration-300 ${s.sun}`} />
+      <span className="absolute left-[14px] top-1/2 -translate-y-1/2 z-10">
+        <IoSunnyOutline className={`w-5 h-5 transition-colors duration-300 ${s.sun}`} />
       </span>
-      <span className="absolute right-[16px] top-1/2 -translate-y-1/2 z-10">
-        <CiCloudMoon className={`w-6 h-6 transition-colors duration-300 ${s.moon}`} />
+      <span className="absolute right-[14px] top-1/2 -translate-y-1/2 z-10">
+        <CiCloudMoon className={`w-5 h-5 transition-colors duration-300 ${s.moon}`} />
       </span>
 
       <span
-        className={`relative z-20 w-14 h-10 rounded-[20px] transition-transform duration-300 ease-in-out ${s.knob} ${
-          isDark ? "translate-x-[56px]" : "translate-x-[6px]"
+        className={`relative z-20 w-8 h-8 rounded-[16px] transition-transform duration-300 ease-in-out ${s.knob} ${
+          isDark ? "translate-x-[48px]" : "translate-x-[4px]"
         }`}
       />
     </button>

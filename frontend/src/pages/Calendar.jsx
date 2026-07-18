@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useGame } from "../context/GameStateContext";
-import Button from "../components/Button/Button";
 import { useTheme } from "./ThemeContext";
+import Button from "../components/Button/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { PiFlowerLotusDuotone } from "react-icons/pi";
 import { RiSeedlingLine } from "react-icons/ri";

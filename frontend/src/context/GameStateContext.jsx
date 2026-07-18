@@ -33,7 +33,7 @@ export function GameStateProvider({ children }) {
   const [shopItems, setShopItems] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [events, setEvents] = useState([]);
-  const [avatar, setAvatar] = useState({ outfit: "default", hair: "default", accessory: "none" });
+  const [avatar, setAvatar] = useState({ outfit: "outfit1", hair: "hair1" });
 
   const fetchUser = useCallback(async () => {
     try {

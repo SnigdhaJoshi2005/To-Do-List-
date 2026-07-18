@@ -51,6 +51,14 @@ const SEED_ITEMS = [
     price: 45,
     category: "plants",
   },
+  {
+    itemId: "golden_daisy",
+    name: "Golden Daisy",
+    emoji: "🌼",
+    description: "A bright golden daisy",
+    price: 70,
+    category: "plants",
+  },
 ];
 
 async function seed() {

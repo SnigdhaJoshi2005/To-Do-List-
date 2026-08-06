@@ -6,6 +6,7 @@ import day1 from "../assets/day1.jpg";
 import night1 from "../assets/night1.jpg";
 import bushDay from "../assets/bushday.png";
 import bushNight from "../assets/bushnight.png";
+import { PiAcornDuotone } from "react-icons/pi";
 
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
@@ -374,7 +375,7 @@ export default function Home() {
                   <span>🛒</span> Shop
                 </h3>
                 <span className="text-xs font-bold text-amber-600 flex items-center gap-1">
-                  🌰 {seeds}
+                  <PiAcornDuotone className="text-xs" /> {seeds}
                 </span>
               </div>
               {shopPreviewItems.length === 0 ? (
@@ -387,7 +388,9 @@ export default function Home() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-primary truncate">{item.name}</p>
                       </div>
-                      <span className="text-[11px] font-bold text-amber-600 shrink-0">🌰 {item.price}</span>
+                      <span className="text-[11px] font-bold text-amber-600 shrink-0 inline-flex items-center gap-1">
+                        <PiAcornDuotone className="text-[11px]" /> {item.price}
+                      </span>
                     </div>
                   ))}
                 </div>

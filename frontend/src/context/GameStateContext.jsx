@@ -32,7 +32,10 @@ const PLANT_IMAGES = {
 };
 
 const DIFFICULTY_XP = { seedling: 10, sprout: 20, bloom: 35 };
-const DIFFICULTY_SEEDS = { seedling: 5, sprout: 10, bloom: 20 };
+const QUEST_SEEDS = {
+  daily: { seedling: 1, sprout: 5, bloom: 9 },
+  weekly: { sprout: 7, bloom: 12 },
+};
 const PRIORITY_TO_DIFFICULTY = { low: "seedling", medium: "sprout", high: "bloom" };
 const DIFFICULTY_TO_PRIORITY = { seedling: "low", sprout: "medium", bloom: "high" };
 
@@ -47,7 +50,7 @@ function mapTaskToQuest(task) {
     difficulty,
     type: task.type || "daily",
     xp: DIFFICULTY_XP[difficulty],
-    seeds: DIFFICULTY_SEEDS[difficulty],
+    seeds: QUEST_SEEDS[task.type || "daily"]?.[difficulty] ?? 0,
     completed: task.done,
     dueDate: task.due || null,
     createdAt: task.createdAt,

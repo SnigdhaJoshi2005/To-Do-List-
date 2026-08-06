@@ -1,4 +1,5 @@
 import { useGame } from "../context/GameStateContext";
+import { PiAcornDuotone } from "react-icons/pi";
 import ShopItemCard from "../components/ShopItemCard/ShopItemCard";
 
 export default function Shop() {
@@ -13,7 +14,7 @@ export default function Shop() {
             Lv.{level}
           </span>
           <span className="inline-flex items-center gap-1 bg-gradient-to-r from-accent to-accent-hover text-white pl-3 pr-3.5 py-1.5 rounded-full font-bold text-sm shadow-[0_2px_8px_rgba(184,164,114,0.3)]">
-            🌰 {seeds}
+            <PiAcornDuotone className="text-sm" /> {seeds}
           </span>
         </div>
       </div>

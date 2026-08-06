@@ -1,9 +1,12 @@
 import { RiSeedlingLine } from "react-icons/ri";
+import { GiSpotedFlower } from "react-icons/gi";
+import { TbPlant2 } from "react-icons/tb";
+import { PiAcornDuotone } from "react-icons/pi";
 
 const difficultyBadge = {
   seedling: { icon: <RiSeedlingLine />, label: "Seedling", color: "bg-green-100 text-green-700" },
-  sprout: { icon: "🌿", label: "Sprout", color: "bg-emerald-100 text-emerald-700" },
-  bloom: { icon: "🌺", label: "Bloom", color: "bg-pink-100 text-pink-700" },
+  sprout: { icon: <TbPlant2 />, label: "Sprout", color: "bg-purple-100 text-purple-700" },
+  bloom: { icon: <GiSpotedFlower />, label: "Bloom", color: "bg-pink-100 text-pink-700" },
 };
 
 export default function QuestCard({ quest, onComplete }) {
@@ -51,7 +54,9 @@ export default function QuestCard({ quest, onComplete }) {
 
       <div className="text-right shrink-0">
         <p className="text-xs font-bold text-accent">+{quest.xp} XP</p>
-        <p className="text-[11px] font-semibold text-amber-600">+{quest.seeds} 🌰</p>
+        <p className="text-[11px] font-semibold text-amber-600 flex items-center justify-end gap-1">
+          +{quest.seeds} <PiAcornDuotone className="text-[11px]" />
+        </p>
       </div>
     </div>
   );

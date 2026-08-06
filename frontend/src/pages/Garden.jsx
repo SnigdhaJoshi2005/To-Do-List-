@@ -1,4 +1,5 @@
 import { FaLock } from "react-icons/fa";
+import { PiAcornDuotone } from "react-icons/pi";
 import { useGame } from "../context/GameStateContext";
 import { useTheme } from "./ThemeContext";
 import daygarden from "../assets/daygarden.png";
@@ -24,7 +25,9 @@ export default function Garden() {
   const { theme } = useTheme();
   const { inventory, seeds, togglePlaced } = useGame();
   const ownedItems = inventory.filter((i) => i.owned);
-  const scenePlants = inventory.filter((i) => i.image && (i.placed || !i.owned));
+  const scenePlants = inventory.filter(
+    (i) => i.image && (i.placed || !i.owned),
+  );
 
   return (
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
@@ -42,11 +45,15 @@ export default function Garden() {
         </h1>
 
         <span className="absolute top-4 right-5 inline-flex items-center gap-1 bg-black/25 backdrop-blur-sm text-white pl-3 pr-3.5 py-1.5 rounded-full text-sm font-bold">
-          🌰 {seeds}
+          <PiAcornDuotone className="text-sm" /> {seeds}
         </span>
 
         {scenePlants.map((item) => {
-          const pos = POSITIONS[item.id] || { bottom: "8%", left: "50%", width: "20%" };
+          const pos = POSITIONS[item.id] || {
+            bottom: "8%",
+            left: "50%",
+            width: "20%",
+          };
           const locked = !item.owned;
           return (
             <div
@@ -62,7 +69,9 @@ export default function Garden() {
               <img
                 src={item.image}
                 alt={item.name}
-                title={locked ? `Unlocks at Lv.${item.levelRequired}` : undefined}
+                title={
+                  locked ? `Unlocks at Lv.${item.levelRequired}` : undefined
+                }
                 className={`w-full ${locked ? "grayscale opacity-50" : ""}`}
               />
               {locked && (
@@ -100,7 +109,9 @@ export default function Garden() {
                   {item.icon}
                 </span>
               )}
-              <span className="text-xs font-bold text-primary">{item.name}</span>
+              <span className="text-xs font-bold text-primary">
+                {item.name}
+              </span>
               <span className="text-[11px] font-semibold text-dim">
                 {item.placed ? "In garden" : "Stored"}
               </span>

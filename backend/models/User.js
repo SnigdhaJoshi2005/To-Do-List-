@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema(
       xp: { type: Number, default: 0 },
       level: { type: Number, default: 1 },
       coins: { type: Number, default: 50 },
+      milestonesAwarded: { type: [Number], default: [] },
     },
     settings: {
       theme: { type: String, default: "default" },

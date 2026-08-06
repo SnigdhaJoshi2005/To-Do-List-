@@ -9,7 +9,7 @@ const router = express.Router();
 // GET /api/shop/items — list all shop items
 router.get("/items", auth, async (req, res) => {
   try {
-    const items = await Item.find().sort({ price: 1 });
+    const items = await Item.find().sort({ levelRequired: 1, price: 1 });
     res.json({ items });
   } catch (err) {
     res.status(500).json({ error: "Server error" });

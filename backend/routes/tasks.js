@@ -6,10 +6,19 @@ const User = require("../models/User");
 const router = express.Router();
 
 const XP_REWARDS = { low: 10, medium: 20, high: 35 };
-const COIN_REWARDS = { low: 5, medium: 10, high: 20 };
+const COIN_REWARDS = {
+  daily: { low: 1, medium: 5, high: 9 },
+  weekly: { medium: 7, high: 12 },
+};
+const QUEST_CAPS = {
+  daily: { low: 3, medium: 4, high: 3 },
+  weekly: { medium: 6, high: 9 },
+};
+const DIFFICULTY_LABEL = { low: "Seedling", medium: "Sprout", high: "Bloom" };
+const MILESTONES = { 10: 100, 20: 150, 30: 200, 40: 250, 50: 300 };
 
 function xpForLevel(level) {
-  return level * 100;
+  return 100 + (level - 1) * 10;
 }
 
 function recalcLevel(xp) {
@@ -20,6 +29,23 @@ function recalcLevel(xp) {
     level++;
   }
   return level;
+}
+
+function awardMilestones(user) {
+  let granted = 0;
+  const awarded = user.stats.milestonesAwarded || [];
+  for (const [milestoneLevel, coins] of Object.entries(MILESTONES)) {
+    const level = Number(milestoneLevel);
+    if (user.stats.level >= level && !awarded.includes(level)) {
+      granted += coins;
+      awarded.push(level);
+    }
+  }
+  if (granted > 0) {
+    user.stats.coins += granted;
+    user.stats.milestonesAwarded = awarded;
+  }
+  return granted;
 }
 
 // GET /api/tasks
@@ -42,12 +68,35 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ error: "Title is required" });
     }
 
+    const taskType = type || "daily";
+    const taskPriority = priority || "medium";
+    const caps = QUEST_CAPS[taskType];
+    if (!caps) {
+      return res.status(400).json({ error: "Invalid quest type" });
+    }
+    if (caps[taskPriority] === undefined) {
+      return res.status(400).json({ error: "Weekly quests can only be Sprout or Bloom" });
+    }
+
+    const activeCount = await Task.countDocuments({
+      user: req.user._id,
+      type: taskType,
+      priority: taskPriority,
+      done: false,
+    });
+    if (activeCount >= caps[taskPriority]) {
+      const typeLabel = taskType === "weekly" ? "Weekly" : "Daily";
+      return res.status(400).json({
+        error: `${typeLabel} ${DIFFICULTY_LABEL[taskPriority]} quests are full (${caps[taskPriority]}/${caps[taskPriority]})`,
+      });
+    }
+
     const task = await Task.create({
       user: req.user._id,
       title: title.trim(),
       notes: notes || "",
-      priority: priority || "medium",
-      type: type || "daily",
+      priority: taskPriority,
+      type: taskType,
       due: due || "",
     });
 
@@ -110,15 +159,16 @@ router.patch("/:id/toggle", auth, async (req, res) => {
     if (task.done) {
       // Award XP and coins
       const xp = XP_REWARDS[task.priority] || 10;
-      const coins = COIN_REWARDS[task.priority] || 5;
+      const coins = COIN_REWARDS[task.type]?.[task.priority] ?? 0;
       user.stats.xp += xp;
       user.stats.coins += coins;
       user.stats.level = recalcLevel(user.stats.xp);
+      awardMilestones(user);
       task.completedAt = new Date();
     } else {
       // Revoke XP and coins
       const xp = XP_REWARDS[task.priority] || 10;
-      const coins = COIN_REWARDS[task.priority] || 5;
+      const coins = COIN_REWARDS[task.type]?.[task.priority] ?? 0;
       user.stats.xp = Math.max(0, user.stats.xp - xp);
       user.stats.coins = Math.max(0, user.stats.coins - coins);
       user.stats.level = recalcLevel(user.stats.xp);

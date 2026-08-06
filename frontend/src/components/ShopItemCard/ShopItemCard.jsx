@@ -1,4 +1,5 @@
 import { FaLock } from "react-icons/fa";
+import { PiAcornDuotone } from "react-icons/pi";
 import Button from "../Button/Button";
 
 export default function ShopItemCard({ item, onBuy, canAfford }) {
@@ -41,7 +42,9 @@ export default function ShopItemCard({ item, onBuy, canAfford }) {
           onClick={() => onBuy(item.id)}
           className={!canAfford ? "opacity-50 cursor-not-allowed" : ""}
         >
-          🌰 {item.price}
+          <span className="inline-flex items-center gap-1">
+            <PiAcornDuotone className="text-sm" /> {item.price}
+          </span>
         </Button>
       )}
     </div>

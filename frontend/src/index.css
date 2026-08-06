@@ -13,6 +13,10 @@
   --color-border: #ddd5c4;
   --color-base: #faf6ee;
   --color-lavender: #c3a9ee;
+  --color-sage: #7fa06b;
+  --color-coral: #e29578;
+  --color-leaf: #7fa06b;
+  --leaf-opacity: 0.1;
 
   --font-family-poppins: "Poppins", sans-serif;
 }
@@ -42,6 +46,10 @@ body {
   --color-border: #2a332c;
   --color-base: #0f1410;
   --color-lavender: #d4b0f0;
+  --color-sage: #a8c492;
+  --color-coral: #f0a88f;
+  --color-leaf: #f2e8cf;
+  --leaf-opacity: 0.06;
 }
 
 [data-theme="dark"] body {
@@ -63,6 +71,23 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-leaf {
+  position: absolute;
+  pointer-events: none;
+  color: var(--color-leaf);
+  opacity: var(--leaf-opacity);
+  animation: leafFall 8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes leafFall {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); }
+  25% { transform: translateY(27vh) translateX(8px) rotate(14deg); }
+  50% { transform: translateY(55vh) translateX(-9px) rotate(-16deg); }
+  75% { transform: translateY(82vh) translateX(7px) rotate(12deg); }
+  100% { transform: translateY(110vh) translateX(-4px) rotate(-8deg); }
 }
 
 @keyframes scaleIn {

@@ -94,7 +94,11 @@ export default function Profile() {
             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
               {inventory.filter((i) => i.owned).map((item) => (
                 <div key={item.id} className="flex flex-col items-center gap-1.5 py-4 bg-muted/80 rounded-[var(--radius-lg)] border border-border/30 transition-all duration-200 hover:shadow-[var(--shadow-sm)] hover:-translate-y-px">
-                  <span className="text-[28px] leading-none">{item.icon}</span>
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="h-9 w-9 object-contain" />
+                  ) : (
+                    <span className="text-[28px] leading-none">{item.icon}</span>
+                  )}
                   <span className="text-xs font-bold text-primary">{item.name}</span>
                   <span className="text-[11px] text-dim font-semibold">{item.placed ? "🌱 Placed" : "📦 Stored"}</span>
                 </div>

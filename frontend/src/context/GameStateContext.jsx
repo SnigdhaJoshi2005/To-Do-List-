@@ -1,6 +1,35 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import pilea from "../assets/pilea.png";
+import snakeplant from "../assets/snakeplant.png";
+import coleus from "../assets/coleus.png";
+import dieffenbachia from "../assets/dieffenbachia.png";
+import peacelily from "../assets/peacelily.png";
+import pearcactus from "../assets/pearcactus.png";
+import begonia from "../assets/begonia.png";
+import zebrahaworthia from "../assets/zebrahaworthia.png";
+import stringsofdolphins from "../assets/stringsofdolphins.png";
+import rosemary from "../assets/rosemary.png";
+import christmascactus from "../assets/christmascactus.png";
+import caladium from "../assets/caladium.png";
+import monstera from "../assets/monstera.png";
 
 const API = "http://localhost:5000/api";
+
+const PLANT_IMAGES = {
+  pilea,
+  snakeplant,
+  coleus,
+  dieffenbachia,
+  peacelily,
+  pearcactus,
+  begonia,
+  zebrahaworthia,
+  stringsofdolphins,
+  rosemary,
+  christmascactus,
+  caladium,
+  monstera,
+};
 
 const DIFFICULTY_XP = { seedling: 10, sprout: 20, bloom: 35 };
 const DIFFICULTY_SEEDS = { seedling: 5, sprout: 10, bloom: 20 };
@@ -166,10 +195,17 @@ export function GameStateProvider({ children }) {
     return stats.coins >= price;
   }, [stats.coins]);
 
-  const togglePlaced = useCallback((itemId) => {
-    setInventory((prev) =>
-      prev.map((i) => (i.itemId === itemId ? { ...i, placed: !i.placed } : i))
-    );
+  const togglePlaced = useCallback(async (itemId) => {
+    try {
+      const res = await fetch(`${API}/shop/place/${itemId}`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInventory(data.inventory.items);
+      }
+    } catch {}
   }, []);
 
   const addEvent = useCallback(async ({ title, date, time = "", color = "mint", recurring = "none" }) => {
@@ -234,6 +270,7 @@ export function GameStateProvider({ children }) {
 
   const mappedInventory = shopItems.map((item) => {
     const owned = inventory.find((i) => i.itemId === item.itemId);
+    const levelRequired = item.levelRequired || 1;
     return {
       id: item.itemId,
       name: item.name,
@@ -243,7 +280,10 @@ export function GameStateProvider({ children }) {
       type: item.category,
       owned: !!owned,
       qty: owned ? owned.qty : 0,
-      placed: false,
+      placed: owned ? !!owned.placed : false,
+      image: PLANT_IMAGES[item.image] || null,
+      levelRequired,
+      locked: (stats.level || 1) < levelRequired,
     };
   });
 

@@ -21,6 +21,20 @@
   --font-family-poppins: "Poppins", sans-serif;
 }
 
+:root {
+  --color-cal-bg: #e2ecd8;
+  --color-cal-bg-hover: #d4e2c6;
+  --color-cal-bg-empty: #e6edd9;
+  --color-cal-today-soft: rgba(127, 160, 107, 0.2);
+  --color-cal-ring: rgba(95, 140, 60, 0.6);
+  --color-cal-surface: #eef5e2;
+  --color-cal-border: rgba(127, 160, 107, 0.45);
+  --color-cal-header: #c8dfb5;
+  --color-cal-head-text: #3f5d2e;
+  --color-cal-title: #5c8145;
+  --color-cal-hover: rgba(127, 160, 107, 0.18);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -50,6 +64,17 @@ body {
   --color-coral: #f0a88f;
   --color-leaf: #f2e8cf;
   --leaf-opacity: 0.06;
+  --color-cal-bg: #3a2b44;
+  --color-cal-bg-hover: #463452;
+  --color-cal-bg-empty: #241d2a;
+  --color-cal-today-soft: rgba(180, 124, 198, 0.25);
+  --color-cal-ring: rgba(180, 124, 198, 0.55);
+  --color-cal-surface: #2a2132;
+  --color-cal-border: rgba(180, 124, 198, 0.35);
+  --color-cal-header: #3a2b44;
+  --color-cal-head-text: #d4b0f0;
+  --color-cal-title: #e88fb8;
+  --color-cal-hover: rgba(180, 124, 198, 0.18);
 }
 
 [data-theme="dark"] body {

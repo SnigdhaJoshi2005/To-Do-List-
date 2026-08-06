@@ -7,6 +7,7 @@ import night1 from "../assets/night1.jpg";
 import bushDay from "../assets/bushday.png";
 import bushNight from "../assets/bushnight.png";
 import { PiAcornDuotone } from "react-icons/pi";
+import { ImHeart } from "react-icons/im";
 
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
@@ -294,7 +295,7 @@ export default function Home() {
               <div className="flex flex-col gap-2.5">
                 {dailyQuests.length === 0 ? (
                   <div className="text-center py-10 bg-surface rounded-[var(--radius-lg)] border border-border border-dashed">
-                    <span className="text-5xl block mb-3">🌻</span>
+                    <ImHeart className="text-5xl text-primary block mx-auto mb-3" />
                     <p className="font-semibold text-primary">
                       All quests complete!
                     </p>

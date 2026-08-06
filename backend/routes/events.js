@@ -27,7 +27,7 @@ router.post("/", auth, async (req, res) => {
       title: title.trim(),
       date,
       time: time || "",
-      color: color || "mint",
+      color: color || "amber",
     });
 
     res.status(201).json({ event });

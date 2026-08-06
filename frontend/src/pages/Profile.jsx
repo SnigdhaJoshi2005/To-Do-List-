@@ -119,7 +119,7 @@ export default function Profile() {
                     <span className="text-[28px] leading-none">{item.icon}</span>
                   )}
                   <span className="text-xs font-bold text-primary">{item.name}</span>
-                  <span className="text-[11px] text-dim font-semibold">{item.placed ? "🌱 Placed" : "📦 Stored"}</span>
+                  <span className="text-[11px] text-dim font-semibold">{item.placed ? (<><RiSeedlingLine className="inline-block" /> Placed</>) : "📦 Stored"}</span>
                 </div>
               ))}
             </div>

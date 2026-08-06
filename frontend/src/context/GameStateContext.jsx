@@ -211,7 +211,7 @@ export function GameStateProvider({ children }) {
     } catch {}
   }, []);
 
-  const addEvent = useCallback(async ({ title, date, time = "", color = "mint", recurring = "none" }) => {
+  const addEvent = useCallback(async ({ title, date, time = "", color = "amber", recurring = "none" }) => {
     const res = await fetch(`${API}/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

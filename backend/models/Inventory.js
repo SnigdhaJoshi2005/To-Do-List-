@@ -11,6 +11,7 @@ const inventorySchema = new mongoose.Schema(
       {
         itemId: { type: String, required: true },
         qty: { type: Number, default: 1, min: 1 },
+        placed: { type: Boolean, default: true },
       },
     ],
   },

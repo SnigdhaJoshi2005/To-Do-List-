@@ -30,6 +30,11 @@ router.post("/buy", auth, async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+    if (user.stats.level < item.levelRequired) {
+      return res
+        .status(403)
+        .json({ error: `Reach Level ${item.levelRequired} to unlock this plant` });
+    }
     if (user.stats.coins < item.price) {
       return res.status(400).json({ error: "Not enough coins" });
     }
@@ -47,8 +52,9 @@ router.post("/buy", auth, async (req, res) => {
     );
     if (existing) {
       existing.qty += 1;
+      existing.placed = true;
     } else {
-      inventory.items.push({ itemId, qty: 1 });
+      inventory.items.push({ itemId, qty: 1, placed: true });
     }
 
     await inventory.save();
@@ -66,6 +72,30 @@ router.get("/inventory", auth, async (req, res) => {
     if (!inventory) {
       inventory = { items: [] };
     }
+    res.json({ inventory });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// PATCH /api/shop/place/:itemId — toggle placed in garden
+router.patch("/place/:itemId", auth, async (req, res) => {
+  try {
+    let inventory = await Inventory.findOne({ user: req.user._id });
+    if (!inventory) {
+      return res.status(404).json({ error: "Inventory not found" });
+    }
+
+    const entry = inventory.items.find(
+      (i) => i.itemId.toString() === req.params.itemId
+    );
+    if (!entry) {
+      return res.status(404).json({ error: "Item not owned" });
+    }
+
+    entry.placed = !entry.placed;
+    await inventory.save();
+
     res.json({ inventory });
   } catch (err) {
     res.status(500).json({ error: "Server error" });

@@ -24,16 +24,17 @@ export default function Profile() {
 
   const characterSrc = characterImages[`${avatar.outfit}-${avatar.hair}`] || BL;
 
-  return (
+    return (
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       <h1 className="text-3xl font-semibold text-primary mb-6">Profile</h1>
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Left Column — 35% */}
-        <div className="lg:w-[35%] bg-surface border border-border rounded-[var(--radius-xl)] p-7 shadow-[var(--shadow-sm)]">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.15)] border-2 border-border mb-4">
-              <img src={characterSrc} alt="Character" className="w-full h-full object-cover" />
+        <div className="lg:w-[35%] bg-surface border border-border rounded-[var(--radius-xl)] p-7 shadow-[var(--shadow-sm)] flex flex-col">
+          <div className="flex flex-col items-center mb-6 flex-1">
+            <div className="w-full flex-1 min-h-72 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.15)] border-2 border-border mb-4">
+              <img src={characterSrc} alt="Character" className="w-full h-full object-contain" />
+              
             </div>
             <h2 className="text-[28px] font-semibold text-primary mb-1">{username}</h2>
             <span className="inline-flex items-center gap-1 bg-gradient-to-r from-accent to-accent-hover text-white px-3 py-1 rounded-xl text-xs font-bold shadow-[0_2px_6px_rgba(184,164,114,0.25)]">
@@ -41,6 +42,8 @@ export default function Profile() {
             </span>
           </div>
           <VineBar current={xp} max={xpForNextLevel} label={`${xp}/${xpForNextLevel} XP`} />
+          <p className="text-xs text-dim mt-2">{xpForNextLevel - xp} XP needed for next level</p>
+          {streak > 0 && <p className="text-xs text-dim mt-0.5">🔥 on a {streak}-day streak!</p>}
         </div>
 
         {/* Right Column — 65% */}

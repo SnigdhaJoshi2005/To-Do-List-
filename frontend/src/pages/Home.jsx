@@ -173,65 +173,61 @@ export default function Home() {
         </div>
 
         {/* Hero Sidebar */}
-        <>
-          {sidebarOpen && (
+        {sidebarOpen && (
+          <div className="md:hidden">
             <div
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30"
               onClick={() => setSidebarOpen(false)}
             />
-          )}
-          <aside
-            className={`fixed top-0 left-0 h-screen w-64 z-40 p-4 transition-transform duration-300 ${
-              sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          >
-            <div className="glass-card h-full rounded-3xl p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-8 px-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🌿</span>
-                  <span className="font-semibold text-lg text-primary">
-                    Questify
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-1 rounded-lg hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
-                  </svg>
-                </button>
-              </div>
-              <nav className="flex flex-col gap-1.5 flex-1">
-                {NAV_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
+            <aside className="fixed top-0 left-0 h-screen w-64 z-40 p-4">
+              <div className="glass-card h-full rounded-3xl p-5 flex flex-col">
+                <div className="flex items-center justify-between mb-8 px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🌿</span>
+                    <span className="font-semibold text-lg text-primary">
+                      Questify
+                    </span>
+                  </div>
+                  <button
                     onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
-                        isActive
-                          ? "bg-accent/10 text-accent"
-                          : "text-secondary hover:bg-muted hover:text-primary"
-                      }`
-                    }
+                    className="p-1 rounded-lg hover:bg-muted transition-colors text-secondary hover:text-primary cursor-pointer"
                   >
-                    <span>{item.label}</span>
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
-          </aside>
-        </>
+                    <svg
+                      className="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <nav className="flex flex-col gap-1.5 flex-1">
+                  {NAV_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                          isActive
+                            ? "bg-accent/10 text-accent"
+                            : "text-secondary hover:bg-muted hover:text-primary"
+                        }`
+                      }
+                    >
+                      <span>{item.label}</span>
+                    </NavLink>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+          </div>
+        )}
 
         {/* Hero Content */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-end gap-6 pb-32">

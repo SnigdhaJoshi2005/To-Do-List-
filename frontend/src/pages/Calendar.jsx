@@ -5,9 +5,13 @@ import Button from "../components/Button/Button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { PiFlowerLotusDuotone } from "react-icons/pi";
 import { RiSeedlingLine } from "react-icons/ri";
+import { ImHeart } from "react-icons/im";
+import { FaCloud, FaSplotch } from "react-icons/fa";
+import { GiSpotedFlower, GiTreeBranch } from "react-icons/gi";
+import { PiCloverDuotone } from "react-icons/pi";
 
-const COLOR_HEX = { mint: "#8FD9BE", sky: "#8FCBE0", pink: "#E8A7C2", lavender: "#C3A9EE" };
-const COLOR_EMOJI = { mint: "🌱", sky: "💧", pink: "🌸", lavender: "🌿" };
+const COLOR_HEX = { amber: "#F59E0B", mint: "#F59E0B", sky: "#8FCBE0", pink: "#E8A7C2", lavender: "#C3A9EE" };
+const COLOR_EMOJI = { amber: <GiTreeBranch className="text-[#F59E0B]" />, mint: <GiTreeBranch className="text-[#F59E0B]" />, sky: <FaCloud className="text-[#90E8F9]" />, pink: <GiSpotedFlower className="text-[#FA8FD1]" />, lavender: <FaSplotch className="text-[#EE90F9]" /> };
 
 export default function Calendar() {
   const { events, addEvent, deleteEvent } = useGame();
@@ -22,7 +26,7 @@ export default function Calendar() {
   const [timeHour, setTimeHour] = useState("12");
   const [timeMin, setTimeMin] = useState("00");
   const [timePeriod, setTimePeriod] = useState("AM");
-  const [chosenColor, setChosenColor] = useState("mint");
+  const [chosenColor, setChosenColor] = useState("amber");
   const [formRecurring, setFormRecurring] = useState("none");
 
   const year = viewDate.getFullYear();
@@ -99,7 +103,7 @@ export default function Calendar() {
     setTimeHour("12");
     setTimeMin("00");
     setTimePeriod("AM");
-    setChosenColor("mint");
+    setChosenColor("amber");
     setFormRecurring("none");
     setShowAddModal(true);
   };
@@ -112,7 +116,7 @@ export default function Calendar() {
     setTimeHour(t.h);
     setTimeMin(t.m);
     setTimePeriod(t.p);
-    setChosenColor(event.color || "mint");
+    setChosenColor(event.color === "mint" ? "amber" : event.color || "amber");
     setFormRecurring(event.recurring || "none");
     setShowDayModal(false);
     setShowAddModal(true);
@@ -151,16 +155,16 @@ export default function Calendar() {
     <div className="py-6" style={{ animation: "fadeIn 0.4s ease-out" }}>
       {/* Month Navigation */}
       <div className="relative flex items-center justify-between mb-6">
-        <Button variant="ghost" size="sm" onClick={goToday} className="flex items-center gap-1.5"><PiFlowerLotusDuotone className="w-4 h-4" /> Today</Button>
+        <Button variant="ghost" size="sm" onClick={goToday} className="flex items-center gap-1.5"><PiFlowerLotusDuotone className="w-4 h-4 text-[#FA8FD1]" /> Today</Button>
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3">
           <button onClick={prevMonth} className="p-2 rounded-xl transition-colors cursor-pointer">
-            <IoIosArrowBack className="w-5 h-5 text-secondary hover:text-primary" />
+            <IoIosArrowBack className="w-5 h-5 text-[var(--color-cal-title)] hover:text-primary" />
           </button>
           <h1 className="text-xl sm:text-2xl font-semibold text-primary min-w-[180px] text-center flex items-center gap-2">
-            <span>🌿</span> {title} <span>🌿</span>
+            <span className="text-[var(--color-cal-title)]">🌿</span> {title} <span className="text-[var(--color-cal-title)]">🌿</span>
           </h1>
           <button onClick={nextMonth} className="p-2 rounded-xl transition-colors cursor-pointer">
-            <IoIosArrowForward className="w-5 h-5 text-secondary hover:text-primary" />
+            <IoIosArrowForward className="w-5 h-5 text-[var(--color-cal-title)] hover:text-primary" />
           </button>
         </div>
         <div className="w-[100px]" />
@@ -169,10 +173,10 @@ export default function Calendar() {
       {/* Calendar + Upcoming Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Calendar Grid */}
-        <div className="lg:w-[65%] bg-surface border border-border/40 rounded-[var(--radius-xl)] p-3 sm:p-5" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
+        <div className="lg:w-[65%] bg-[var(--color-cal-surface)] border border-[var(--color-cal-border)] rounded-[var(--radius-xl)] p-3 sm:p-5" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
           <div className="grid grid-cols-7 gap-3 mb-3">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="text-center text-sm font-medium text-dim py-1">{d}</div>
+              <div key={d} className="text-center text-sm font-medium text-[var(--color-cal-head-text)] py-1">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-3">
@@ -185,19 +189,19 @@ export default function Calendar() {
                 onClick={() => handleDayClick(cell)}
                 className={`aspect-[5/4] rounded-2xl flex flex-col items-center justify-start p-2.5 text-base cursor-pointer transition-all duration-200 border-none ${
                     cell.isToday
-                      ? "bg-gradient-to-br from-accent/20 to-accent-alt/20 font-semibold text-primary ring-2 ring-accent/30"
+                      ? "bg-[var(--color-cal-today-soft)] font-semibold text-primary ring-2 ring-[var(--color-cal-ring)]"
                       : cell.events.length > 0
-                        ? "bg-muted/80 hover:bg-muted text-secondary"
-                        : "bg-surface hover:bg-muted text-secondary"
+                        ? "bg-[var(--color-cal-bg)] hover:bg-[var(--color-cal-bg-hover)] text-primary"
+                        : "bg-[var(--color-cal-bg-empty)] hover:bg-[var(--color-cal-bg-hover)] text-secondary"
                   }`}
                 >
                   <span className="flex items-center gap-0.5">
-                    {cell.isToday && <RiSeedlingLine className="text-[10px]" />}
+                    {cell.isToday && <PiCloverDuotone className="text-[12px] text-[#80C779]" />}
                     {cell.day}
                   </span>
                   <div className="flex gap-1 mt-1 flex-wrap justify-center">
                     {cell.events.slice(0, 3).map((ev, i) => (
-                      <span key={i} className="text-[10px] leading-none">{COLOR_EMOJI[ev.color] || "🌱"}</span>
+                      <span key={i} className="text-[12px] leading-none">{COLOR_EMOJI[ev.color] || <RiSeedlingLine />}</span>
                     ))}
                     {cell.events.length > 3 && (
                       <span className="text-[10px] text-dim leading-none">+{cell.events.length - 3}</span>
@@ -211,18 +215,18 @@ export default function Calendar() {
 
         {/* Upcoming Events */}
         <section className="lg:w-[35%] bg-surface border border-border/40 rounded-[var(--radius-xl)] p-6" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.1s" }}>
-        <h2 className="font-semibold text-primary mb-4 flex items-center gap-2">
-          <span>🌻</span> Upcoming
+        <h2 className="font-semibold text-[var(--color-cal-title)] mb-4 flex items-center gap-2">
+          <ImHeart className="text-[#80C779]" /> Upcoming
         </h2>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-dim text-center py-6">No events scheduled — click a day to plant one 🌱</p>
+          <p className="text-sm text-[var(--color-cal-head-text)] text-center py-6">No events scheduled — click a day to plant one <RiSeedlingLine className="inline-block align-[-2px]" /></p>
         ) : (
           <div className="flex flex-col gap-2">
             {upcoming.map((ev) => (
               <div key={ev._id} className="flex items-center gap-3 bg-muted/50 rounded-2xl px-4 py-3">
-                <span className="text-base">{COLOR_EMOJI[ev.color] || "🌱"}</span>
-                <span className="flex-1 text-sm text-primary">{ev.title}</span>
-                <span className="text-xs text-dim">{ev.date}{ev.time ? ` · ${ev.time}` : ""}</span>
+                <span className="text-lg">{COLOR_EMOJI[ev.color] || <RiSeedlingLine />}</span>
+                <span className="flex-1 text-sm text-[var(--color-cal-head-text)]">{ev.title}</span>
+                <span className="text-xs text-[var(--color-cal-title)] opacity-70">{ev.date}{ev.time ? ` · ${ev.time}` : ""}</span>
                 <button onClick={() => handleDelete(ev._id)} className="text-dim hover:text-rose-400 transition-colors cursor-pointer">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
                 </button>
@@ -246,7 +250,7 @@ export default function Calendar() {
             <div className="flex flex-col gap-2 overflow-y-auto flex-1 mb-4">
               {selectedDay.events.map((ev) => (
                 <div key={ev._id} className="flex items-center gap-3 bg-muted/50 rounded-2xl px-4 py-3">
-                  <span className="text-base">{COLOR_EMOJI[ev.color] || "🌱"}</span>
+                  <span className="text-lg">{COLOR_EMOJI[ev.color] || <RiSeedlingLine />}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-primary font-medium truncate">{ev.title}</p>
                     {ev.time && <p className="text-xs text-dim">{ev.time}</p>}
@@ -312,14 +316,14 @@ export default function Calendar() {
               <div>
                 <label className="text-xs text-dim mb-1 block">Color</label>
                 <div className="flex gap-3">
-                  {["mint", "sky", "pink", "lavender"].map((c) => (
+                  {["amber", "sky", "pink", "lavender"].map((c) => (
                     <button key={c} type="button" onClick={() => setChosenColor(c)}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all cursor-pointer ${
+                      className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all cursor-pointer ${
                         chosenColor === c ? "bg-accent/10 ring-2 ring-accent" : "hover:bg-muted"
                       }`}
                     >
                       <span className="w-7 h-7 rounded-full" style={{ background: COLOR_HEX[c] }} />
-                      <span className="text-[10px] text-dim">{COLOR_EMOJI[c]} {c}</span>
+                      <span className="text-xs text-dim">{COLOR_EMOJI[c]} {c}</span>
                     </button>
                   ))}
                 </div>

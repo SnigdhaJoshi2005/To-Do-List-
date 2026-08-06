@@ -23,8 +23,8 @@ const eventSchema = new mongoose.Schema(
     },
     color: {
       type: String,
-      enum: ["mint", "sky", "pink", "lavender"],
-      default: "mint",
+      enum: ["amber", "sky", "pink", "lavender"],
+      default: "amber",
     },
     recurring: {
       type: String,

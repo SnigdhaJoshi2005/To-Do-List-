@@ -9,9 +9,9 @@ import { TbSeedlingFilled, TbPlant2 } from "react-icons/tb";
 const DAILY_CAPS = { seedling: 3, sprout: 4, bloom: 3 };
 const WEEKLY_CAPS = { sprout: 6, bloom: 9 };
 const DIFF_LABEL = {
-  seedling: <><TbSeedlingFilled className="inline text-green-600" /> Seedling</>,
-  sprout: <><TbPlant2 className="inline text-purple-600" /> Sprout</>,
-  bloom: <><GiSpotedFlower className="inline text-pink-500" /> Bloom</>,
+  seedling: <><TbSeedlingFilled className="inline text-[#80C779]" /> Seedling</>,
+  sprout: <><TbPlant2 className="inline text-[#EE90F9]" /> Sprout</>,
+  bloom: <><GiSpotedFlower className="inline text-[#FA8FD1]" /> Bloom</>,
 };
 
 export default function Quests() {
@@ -89,15 +89,15 @@ export default function Quests() {
       <div className="bg-surface border border-border/40 rounded-[var(--radius-lg)] p-3.5 mb-4 text-xs font-semibold text-secondary flex flex-col gap-1.5" style={{ animation: "fadeIn 0.4s ease-out" }}>
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="text-primary font-bold">Daily:</span>
-          <span className={dailyCounts.seedling >= DAILY_CAPS.seedling ? "text-dim" : ""}><TbSeedlingFilled className="inline text-green-600" /> {dailyCounts.seedling}/{DAILY_CAPS.seedling}</span>
-          <span className={dailyCounts.sprout >= DAILY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-purple-600" /> {dailyCounts.sprout}/{DAILY_CAPS.sprout}</span>
-          <span className={dailyCounts.bloom >= DAILY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-pink-500" /> {dailyCounts.bloom}/{DAILY_CAPS.bloom}</span>
+          <span className={dailyCounts.seedling >= DAILY_CAPS.seedling ? "text-dim" : ""}><TbSeedlingFilled className="inline text-[#80C779]" /> {dailyCounts.seedling}/{DAILY_CAPS.seedling}</span>
+          <span className={dailyCounts.sprout >= DAILY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-[#EE90F9]" /> {dailyCounts.sprout}/{DAILY_CAPS.sprout}</span>
+          <span className={dailyCounts.bloom >= DAILY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-[#FA8FD1]" /> {dailyCounts.bloom}/{DAILY_CAPS.bloom}</span>
           <span className="text-[11px] text-dim ml-1">(seedling · sprout · bloom)</span>
         </p>
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="text-primary font-bold">Weekly:</span>
-          <span className={weeklyCounts.sprout >= WEEKLY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-purple-600" /> {weeklyCounts.sprout}/{WEEKLY_CAPS.sprout}</span>
-          <span className={weeklyCounts.bloom >= WEEKLY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-pink-500" /> {weeklyCounts.bloom}/{WEEKLY_CAPS.bloom}</span>
+          <span className={weeklyCounts.sprout >= WEEKLY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-[#EE90F9]" /> {weeklyCounts.sprout}/{WEEKLY_CAPS.sprout}</span>
+          <span className={weeklyCounts.bloom >= WEEKLY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-[#FA8FD1]" /> {weeklyCounts.bloom}/{WEEKLY_CAPS.bloom}</span>
           <span className="text-[11px] text-dim ml-1">(sprout · bloom)</span>
         </p>
       </div>

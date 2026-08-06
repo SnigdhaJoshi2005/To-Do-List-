@@ -40,6 +40,14 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    localDay: {
+      type: String,
+      default: "",
+    },
+    completedLocalDay: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

@@ -36,13 +36,36 @@ const QUEST_SEEDS = {
   daily: { seedling: 1, sprout: 5, bloom: 9 },
   weekly: { sprout: 7, bloom: 12 },
 };
+const COOLDOWN_MS = { seedling: 5 * 60 * 1000, sprout: 30 * 60 * 1000, bloom: 60 * 60 * 1000 };
+const DAILY_STREAK_GOAL = 5;
 const PRIORITY_TO_DIFFICULTY = { low: "seedling", medium: "sprout", high: "bloom" };
 const DIFFICULTY_TO_PRIORITY = { seedling: "low", sprout: "medium", bloom: "high" };
+
+function dateStrFromDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function todayStr() {
+  return dateStrFromDate(new Date());
+}
+
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + n);
+  return dateStrFromDate(dt);
+}
 
 const GameStateContext = createContext(null);
 
 function mapTaskToQuest(task) {
   const difficulty = PRIORITY_TO_DIFFICULTY[task.priority] || "sprout";
+  const plantedDay =
+    task.localDay ||
+    (task.createdAt ? dateStrFromDate(new Date(task.createdAt)) : todayStr());
   return {
     id: task._id,
     title: task.title,
@@ -54,6 +77,12 @@ function mapTaskToQuest(task) {
     completed: task.done,
     dueDate: task.due || null,
     createdAt: task.createdAt,
+    plantedDay,
+    expiresDay: addDays(plantedDay, task.type === "weekly" ? 7 : 1),
+    completedAt: task.completedAt || null,
+    readyAt: task.createdAt
+      ? new Date(task.createdAt).getTime() + COOLDOWN_MS[difficulty]
+      : 0,
   };
 }
 
@@ -61,7 +90,7 @@ export function GameStateProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [quests, setQuests] = useState([]);
-  const [stats, setStats] = useState({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0 });
+  const [stats, setStats] = useState({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
   const [shopItems, setShopItems] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [events, setEvents] = useState([]);
@@ -89,7 +118,7 @@ export function GameStateProvider({ children }) {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/tasks/stats`, { credentials: "include" });
+      const res = await fetch(`${API}/tasks/stats?day=${todayStr()}`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -152,24 +181,35 @@ export function GameStateProvider({ children }) {
           priority: DIFFICULTY_TO_PRIORITY[difficulty],
           type,
           due: dueDate || "",
+          day: todayStr(),
         }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const data = await res.json();
         setQuests((prev) => [mapTaskToQuest(data.task), ...prev]);
+        return { ok: true };
       }
-    } catch {}
+      return { ok: false, error: data.error || "Could not create quest" };
+    } catch {
+      return { ok: false, error: "Could not create quest" };
+    }
   }, []);
 
   const completeQuest = useCallback(async (questId) => {
-    const res = await fetch(`${API}/tasks/${questId}/toggle`, {
+    const res = await fetch(`${API}/tasks/${questId}/complete`, {
       method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
+      body: JSON.stringify({ day: todayStr() }),
     });
     if (res.ok) {
       const data = await res.json();
       setQuests((prev) =>
-        prev.map((q) => (q.id === questId ? { ...q, completed: data.task.done } : q))
+        prev.map((q) =>
+          q.id === questId
+            ? { ...q, completed: true, completedAt: data.task.completedAt || q.completedAt }
+            : q
+        )
       );
       setStats((prev) => ({
         ...prev,
@@ -177,8 +217,10 @@ export function GameStateProvider({ children }) {
         level: data.stats.level,
         coins: data.stats.coins,
       }));
+      fetchStats();
     }
-  }, []);
+    return res.ok;
+  }, [fetchStats]);
 
   const buyItem = useCallback(async (itemId) => {
     const res = await fetch(`${API}/shop/buy`, {
@@ -265,7 +307,7 @@ export function GameStateProvider({ children }) {
     });
     setUser(null);
     setQuests([]);
-    setStats({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0 });
+    setStats({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
     setShopItems([]);
     setInventory([]);
     setEvents([]);
@@ -301,6 +343,8 @@ export function GameStateProvider({ children }) {
     seeds: stats.coins,
     streak: stats.streak,
     totalCompleted: stats.totalCompleted,
+    todayCompleted: stats.todayCompleted || 0,
+    dailyGoal: stats.dailyGoal || DAILY_STREAK_GOAL,
     inventory: mappedInventory,
     events,
     avatar,

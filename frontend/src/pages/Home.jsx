@@ -8,10 +8,12 @@ import bushDay from "../assets/bushday.png";
 import bushNight from "../assets/bushnight.png";
 import { PiAcornDuotone } from "react-icons/pi";
 import { ImHeart } from "react-icons/im";
+import { FaFire, FaLock } from "react-icons/fa";
 
 import VineBar from "../components/VineBar/VineBar";
 import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
+import NewQuestModal from "../components/NewQuestModal/NewQuestModal";
 import ThemeToggle from "../components/ThemeToggle/ThemeToggle";
 import { RiSeedlingLine } from "react-icons/ri";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
@@ -33,12 +35,15 @@ export default function Home() {
     level,
     xpForNextLevel,
     completeQuest,
-    addQuest,
     inventory,
     events,
     seeds,
+    streak,
+    todayCompleted,
+    dailyGoal,
   } = useGame();
   const [newQuestTitle, setNewQuestTitle] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [calDate, setCalDate] = useState(new Date());
 
@@ -59,7 +64,8 @@ export default function Home() {
     return days;
   }, [calYear, calMonth, events, todayStr]);
 
-  const shopPreviewItems = inventory.filter((i) => !i.owned).slice(0, 2);
+  const shopPreviewItems = inventory.filter((i) => !i.owned);
+  const featuredItem = shopPreviewItems.find((i) => !i.locked) || shopPreviewItems[0] || null;
 
   const activeQuests = quests.filter((q) => !q.completed);
   const dailyQuests = activeQuests.filter((q) => q.type === "daily");
@@ -67,13 +73,7 @@ export default function Home() {
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
-    if (!newQuestTitle.trim()) return;
-    addQuest({
-      title: newQuestTitle.trim(),
-      difficulty: "seedling",
-      type: "daily",
-    });
-    setNewQuestTitle("");
+    setShowAddModal(true);
   };
 
   return (
@@ -323,22 +323,41 @@ export default function Home() {
 
           {/* Sidebar */}
           <div className="lg:w-[30%] flex flex-col gap-5">
+            {/* Streak */}
+            <div className="bg-surface border border-border/40 rounded-[var(--radius-xl)] p-4" style={{ animation: "fadeIn 0.4s ease-out" }}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                  <FaFire className="text-coral" /> Streak
+                </h3>
+                <span className="text-xs font-bold text-coral">{streak || 0} days</span>
+              </div>
+              <p className="text-xs text-dim mb-2">
+                {todayCompleted}/{dailyGoal} daily quests completed today
+              </p>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, ((todayCompleted || 0) / (dailyGoal || 1)) * 100)}%`, background: "#E29578" }}
+                />
+              </div>
+            </div>
+
             {/* Mini Calendar */}
-            <div className="bg-surface border border-border/40 rounded-[var(--radius-xl)] p-4" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
+            <div className="bg-[var(--color-cal-surface)] border border-[var(--color-cal-border)] rounded-[var(--radius-xl)] p-4" style={{ animation: "fadeIn 0.4s ease-out", animationDelay: "0.05s" }}>
               <div className="flex items-center justify-between mb-3">
                 <button onClick={() => setCalDate(new Date(calYear, calMonth - 1, 1))} className="p-1 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                  <IoIosArrowBack className="w-4 h-4 text-secondary hover:text-primary" />
+                  <IoIosArrowBack className="w-4 h-4 text-[var(--color-cal-title)] hover:text-primary" />
                 </button>
-                <span className="text-sm font-semibold text-primary">
+                <span className="text-sm font-semibold text-[var(--color-cal-title)]">
                   {calDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                 </span>
                 <button onClick={() => setCalDate(new Date(calYear, calMonth + 1, 1))} className="p-1 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                  <IoIosArrowForward className="w-4 h-4 text-secondary hover:text-primary" />
+                  <IoIosArrowForward className="w-4 h-4 text-[var(--color-cal-title)] hover:text-primary" />
                 </button>
               </div>
               <div className="grid grid-cols-7 gap-1 mb-1">
                 {["S","M","T","W","T","F","S"].map((d, i) => (
-                  <div key={i} className="text-center text-[10px] font-medium text-dim py-0.5">{d}</div>
+                  <div key={i} className="text-center text-[10px] font-medium text-[var(--color-cal-head-text)] py-0.5">{d}</div>
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-1">
@@ -348,13 +367,17 @@ export default function Home() {
                   ) : (
                     <div
                       key={cell.key}
-                      className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs relative ${
-                        cell.isToday ? "bg-accent/15 font-bold text-primary ring-1 ring-accent/30" : "text-secondary"
+                      className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs relative transition-colors duration-200 ${
+                        cell.isToday
+                          ? "bg-[var(--color-cal-today-soft)] font-semibold text-primary ring-1 ring-[var(--color-cal-ring)]"
+                          : cell.hasEvents
+                            ? "bg-[var(--color-cal-bg)] hover:bg-[var(--color-cal-bg-hover)] text-primary"
+                            : "bg-[var(--color-cal-bg-empty)] hover:bg-[var(--color-cal-bg-hover)] text-secondary"
                       }`}
                     >
                       {cell.day}
                       {cell.hasEvents && (
-                        <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-accent" />
+                        <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-[var(--color-cal-title)]" />
                       )}
                     </div>
                   )
@@ -375,22 +398,39 @@ export default function Home() {
                   <PiAcornDuotone className="text-xs" /> {seeds}
                 </span>
               </div>
-              {shopPreviewItems.length === 0 ? (
-                <p className="text-xs text-dim text-center py-4">No items available</p>
-              ) : (
-                <div className="flex flex-col gap-2 mb-3">
-                  {shopPreviewItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 bg-muted/50 rounded-xl px-3 py-2.5">
-                      <span className="text-xl leading-none">{item.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-primary truncate">{item.name}</p>
-                      </div>
-                      <span className="text-[11px] font-bold text-amber-600 shrink-0 inline-flex items-center gap-1">
-                        <PiAcornDuotone className="text-[11px]" /> {item.price}
+              {featuredItem ? (
+                <div className="flex flex-col items-center gap-2 mb-3 bg-muted/50 rounded-2xl px-4 py-5">
+                  <div className="relative h-16 w-16 flex items-center justify-center">
+                    {featuredItem.image ? (
+                      <img
+                        src={featuredItem.image}
+                        alt={featuredItem.name}
+                        className={`h-16 w-16 object-contain ${featuredItem.locked ? "grayscale opacity-50" : ""}`}
+                      />
+                    ) : (
+                      <span className={`text-4xl leading-none ${featuredItem.locked ? "grayscale opacity-50" : ""}`}>
+                        {featuredItem.icon}
                       </span>
-                    </div>
-                  ))}
+                    )}
+                    {featuredItem.locked && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <FaLock className="text-2xl text-primary" />
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-primary text-center">{featuredItem.name}</p>
+                  {featuredItem.locked ? (
+                    <span className="text-[11px] font-bold text-dim px-3 py-1 rounded-full">
+                      Unlocks at Lv.{featuredItem.levelRequired}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold text-amber-500 bg-[rgba(245,158,11,0.15)] px-3 py-1 rounded-full inline-flex items-center gap-1">
+                      <PiAcornDuotone className="text-[11px]" /> {featuredItem.price}
+                    </span>
+                  )}
                 </div>
+              ) : (
+                <p className="text-xs text-dim text-center py-4">No items available</p>
               )}
               <NavLink to="/shop" className="block text-center text-xs font-semibold text-accent hover:text-accent-hover transition-colors">
                 Shop All →
@@ -399,6 +439,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <NewQuestModal
+        open={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setNewQuestTitle("");
+        }}
+        initialTitle={newQuestTitle}
+      />
     </div>
   );
 }

@@ -1,33 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "../context/GameStateContext";
 import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
-import { RiSeedlingLine } from "react-icons/ri";
+import NewQuestModal from "../components/NewQuestModal/NewQuestModal";
+import { DAILY_CAPS, WEEKLY_CAPS } from "../constants/quests";
 import { GiSpotedFlower } from "react-icons/gi";
 import { TbSeedlingFilled, TbPlant2 } from "react-icons/tb";
 
-const DAILY_CAPS = { seedling: 3, sprout: 4, bloom: 3 };
-const WEEKLY_CAPS = { sprout: 6, bloom: 9 };
-const DIFF_LABEL = {
-  seedling: <><TbSeedlingFilled className="inline text-[#80C779]" /> Seedling</>,
-  sprout: <><TbPlant2 className="inline text-[#EE90F9]" /> Sprout</>,
-  bloom: <><GiSpotedFlower className="inline text-[#FA8FD1]" /> Bloom</>,
+const todayStr = (d = new Date()) => {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
 };
 
+const capRow = (label, count, cap, hex, icon, full) => (
+  <div>
+    <div className={`flex items-center justify-between gap-2 ${full ? "text-dim" : ""}`}>
+      <span className="flex items-center gap-1">{icon} {label}</span>
+      <span>{count}/{cap}</span>
+    </div>
+    <div className="h-1.5 rounded-full bg-muted mt-1 overflow-hidden">
+      <div className="h-full rounded-full" style={{ width: `${Math.min(100, (count / cap) * 100)}%`, background: hex }} />
+    </div>
+  </div>
+);
+
 export default function Quests() {
-  const { quests, completeQuest, addQuest } = useGame();
+  const { quests, completeQuest } = useGame();
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newQuest, setNewQuest] = useState({ title: "", difficulty: "seedling", type: "daily", dueDate: "" });
+
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  const today = todayStr(new Date(now));
+  const isExpired = (q) => !q.completed && q.expiresDay && today >= q.expiresDay;
 
   const countActive = (type, difficulty) =>
-    quests.filter((q) => q.type === type && q.difficulty === difficulty && !q.completed).length;
+    quests.filter((q) => q.type === type && q.difficulty === difficulty && !q.completed && !isExpired(q)).length;
+
+  const countUsedToday = (difficulty) =>
+    quests.filter((q) => q.type === "daily" && q.difficulty === difficulty && q.plantedDay === today).length;
 
   const dailyCounts = {
-    seedling: countActive("daily", "seedling"),
-    sprout: countActive("daily", "sprout"),
-    bloom: countActive("daily", "bloom"),
+    seedling: countUsedToday("seedling"),
+    sprout: countUsedToday("sprout"),
+    bloom: countUsedToday("bloom"),
   };
   const weeklyCounts = {
     sprout: countActive("weekly", "sprout"),
@@ -37,17 +59,12 @@ export default function Quests() {
   const dailyFull = dailyCounts.seedling >= DAILY_CAPS.seedling && dailyCounts.sprout >= DAILY_CAPS.sprout && dailyCounts.bloom >= DAILY_CAPS.bloom;
   const weeklyFull = weeklyCounts.sprout >= WEEKLY_CAPS.sprout && weeklyCounts.bloom >= WEEKLY_CAPS.bloom;
 
-  const capsForType = newQuest.type === "weekly" ? WEEKLY_CAPS : DAILY_CAPS;
-  const availDifficulties = newQuest.type === "weekly" ? ["sprout", "bloom"] : ["seedling", "sprout", "bloom"];
-  const selectedLeft = capsForType[newQuest.difficulty] - countActive(newQuest.type, newQuest.difficulty);
-  const selectedTypeFull = newQuest.type === "weekly" ? weeklyFull : dailyFull;
-  const submitDisabled = selectedTypeFull || selectedLeft <= 0;
-
   let filtered = quests.filter((q) => {
     if (filter === "daily") return q.type === "daily";
     if (filter === "weekly") return q.type === "weekly";
     if (filter === "completed") return q.completed;
-    if (filter === "active") return !q.completed;
+    if (filter === "incomplete") return isExpired(q);
+    if (filter === "active") return !q.completed && !isExpired(q);
     return true;
   });
 
@@ -61,19 +78,10 @@ export default function Quests() {
     return 0;
   });
 
-  const handleAdd = (e) => {
-    e.preventDefault();
-    if (!newQuest.title.trim()) return;
-    if (newQuest.type === "weekly" && newQuest.difficulty === "seedling") return;
-    if (submitDisabled) return;
-    addQuest({ ...newQuest, title: newQuest.title.trim(), dueDate: newQuest.dueDate || null });
-    setNewQuest({ title: "", difficulty: "seedling", type: "daily", dueDate: "" });
-    setShowAddModal(false);
-  };
-
   const filters = [
     { key: "all", label: "All" },
     { key: "active", label: "Active" },
+    { key: "incomplete", label: "Incomplete" },
     { key: "daily", label: "Daily" },
     { key: "weekly", label: "Weekly" },
     { key: "completed", label: "Completed" },
@@ -86,20 +94,18 @@ export default function Quests() {
         <Button variant="primary" onClick={() => setShowAddModal(true)} disabled={dailyFull && weeklyFull} className={dailyFull && weeklyFull ? "opacity-50 cursor-not-allowed" : ""}>+ New Quest</Button>
       </div>
 
-      <div className="bg-surface border border-border/40 rounded-[var(--radius-lg)] p-3.5 mb-4 text-xs font-semibold text-secondary flex flex-col gap-1.5" style={{ animation: "fadeIn 0.4s ease-out" }}>
-        <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <span className="text-primary font-bold">Daily:</span>
-          <span className={dailyCounts.seedling >= DAILY_CAPS.seedling ? "text-dim" : ""}><TbSeedlingFilled className="inline text-[#80C779]" /> {dailyCounts.seedling}/{DAILY_CAPS.seedling}</span>
-          <span className={dailyCounts.sprout >= DAILY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-[#EE90F9]" /> {dailyCounts.sprout}/{DAILY_CAPS.sprout}</span>
-          <span className={dailyCounts.bloom >= DAILY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-[#FA8FD1]" /> {dailyCounts.bloom}/{DAILY_CAPS.bloom}</span>
-          <span className="text-[11px] text-dim ml-1">(seedling · sprout · bloom)</span>
-        </p>
-        <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <span className="text-primary font-bold">Weekly:</span>
-          <span className={weeklyCounts.sprout >= WEEKLY_CAPS.sprout ? "text-dim" : ""}><TbPlant2 className="inline text-[#EE90F9]" /> {weeklyCounts.sprout}/{WEEKLY_CAPS.sprout}</span>
-          <span className={weeklyCounts.bloom >= WEEKLY_CAPS.bloom ? "text-dim" : ""}><GiSpotedFlower className="inline text-[#FA8FD1]" /> {weeklyCounts.bloom}/{WEEKLY_CAPS.bloom}</span>
-          <span className="text-[11px] text-dim ml-1">(sprout · bloom)</span>
-        </p>
+      <div className="bg-gradient-to-r from-[rgba(128,199,121,0.12)] via-surface to-[rgba(250,143,209,0.12)] border border-border/40 rounded-[var(--radius-lg)] p-4 mb-4 text-xs font-semibold text-secondary grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ animation: "fadeIn 0.4s ease-out" }}>
+        <div className="flex flex-col gap-3">
+          <p className="text-primary font-bold">Daily</p>
+          {capRow("Seedling", dailyCounts.seedling, DAILY_CAPS.seedling, "#80C779", <TbSeedlingFilled className="inline text-[#80C779]" />, dailyCounts.seedling >= DAILY_CAPS.seedling)}
+          {capRow("Sprout", dailyCounts.sprout, DAILY_CAPS.sprout, "#EE90F9", <TbPlant2 className="inline text-[#EE90F9]" />, dailyCounts.sprout >= DAILY_CAPS.sprout)}
+          {capRow("Bloom", dailyCounts.bloom, DAILY_CAPS.bloom, "#FA8FD1", <GiSpotedFlower className="inline text-[#FA8FD1]" />, dailyCounts.bloom >= DAILY_CAPS.bloom)}
+        </div>
+        <div className="flex flex-col gap-3">
+          <p className="text-primary font-bold">Weekly</p>
+          {capRow("Sprout", weeklyCounts.sprout, WEEKLY_CAPS.sprout, "#EE90F9", <TbPlant2 className="inline text-[#EE90F9]" />, weeklyCounts.sprout >= WEEKLY_CAPS.sprout)}
+          {capRow("Bloom", weeklyCounts.bloom, WEEKLY_CAPS.bloom, "#FA8FD1", <GiSpotedFlower className="inline text-[#FA8FD1]" />, weeklyCounts.bloom >= WEEKLY_CAPS.bloom)}
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
@@ -137,68 +143,15 @@ export default function Quests() {
             <p className="text-sm text-dim mt-1">Try a different filter or add a new quest</p>
           </div>
         ) : (
-          filtered.map((q) => (
-            <QuestCard key={q.id} quest={q} onComplete={completeQuest} />
+          filtered.map((q, idx) => (
+            <div key={q.id} style={{ animation: "fadeIn 0.4s ease-out forwards", animationDelay: `${Math.min(idx, 10) * 0.05}s` }}>
+              <QuestCard quest={q} onComplete={completeQuest} />
+            </div>
           ))
         )}
       </div>
 
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm" onClick={() => setShowAddModal(false)} style={{ animation: "fadeIn 0.2s ease-out" }}>
-          <div className="bg-surface rounded-[var(--radius-xl)] p-8 w-full max-w-md shadow-[var(--shadow-lg)] border border-border/50" onClick={(e) => e.stopPropagation()} style={{ animation: "scaleIn 0.3s ease-out" }}>
-            <h2 className="text-2xl font-semibold text-primary mb-6">New Quest</h2>
-            <form onSubmit={handleAdd} className="flex flex-col gap-4">
-              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-                <span>Title</span>
-                <input type="text" value={newQuest.title} onChange={(e) => setNewQuest((p) => ({ ...p, title: e.target.value }))} placeholder="What do you need to do?" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-                <span>Difficulty</span>
-                <select value={newQuest.difficulty} onChange={(e) => setNewQuest((p) => ({ ...p, difficulty: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer">
-                  {availDifficulties.map((d) => {
-                    const left = capsForType[d] - countActive(newQuest.type, d);
-                    return (
-                      <option key={d} value={d} disabled={left <= 0}>
-                        {DIFF_LABEL[d]} ({Math.max(left, 0)} left)
-                      </option>
-                    );
-                  })}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-                <span>Type</span>
-                <select
-                  value={newQuest.type}
-                  onChange={(e) =>
-                    setNewQuest((p) => ({
-                      ...p,
-                      type: e.target.value,
-                      difficulty: e.target.value === "weekly" && p.difficulty === "seedling" ? "sprout" : p.difficulty,
-                    }))
-                  }
-                  className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer"
-                >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                </select>
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-                <span>Due date (optional)</span>
-                <input type="date" value={newQuest.dueDate} onChange={(e) => setNewQuest((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
-              </label>
-              <div className="flex justify-end gap-2.5 mt-2">
-                <Button variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                <Button variant="primary" onClick={handleAdd} disabled={submitDisabled} className={submitDisabled ? "opacity-50 cursor-not-allowed" : ""}>Plant Quest <RiSeedlingLine className="inline" /></Button>
-              </div>
-              {submitDisabled && (
-                <p className="text-[11px] font-semibold text-dim mt-1">
-                  {newQuest.type === "weekly" ? "Weekly" : "Daily"} quests are at their limit — complete an active quest to free a slot.
-                </p>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
+      <NewQuestModal open={showAddModal} onClose={() => setShowAddModal(false)} />
     </div>
   );
 }

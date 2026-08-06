@@ -16,9 +16,33 @@ const QUEST_CAPS = {
 };
 const DIFFICULTY_LABEL = { low: "Seedling", medium: "Sprout", high: "Bloom" };
 const MILESTONES = { 10: 100, 20: 150, 30: 200, 40: 250, 50: 300 };
+const COOLDOWN_MS = { low: 5 * 60 * 1000, medium: 30 * 60 * 1000, high: 60 * 60 * 1000 };
+const DAILY_STREAK_GOAL = 5;
 
 function xpForLevel(level) {
   return 100 + (level - 1) * 10;
+}
+
+function dateStrOf(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(dateStr, n) {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return dateStrOf(d);
+}
+
+function plantedDayOf(task) {
+  if (task.localDay) return task.localDay;
+  return dateStrOf(new Date(task.createdAt));
+}
+
+function expiresDayOf(task) {
+  return addDays(plantedDayOf(task), task.type === "daily" ? 1 : 7);
 }
 
 function recalcLevel(xp) {
@@ -63,7 +87,7 @@ router.get("/", auth, async (req, res) => {
 // POST /api/tasks
 router.post("/", auth, async (req, res) => {
   try {
-    const { title, notes, priority, type, due } = req.body;
+    const { title, notes, priority, type, due, day } = req.body;
     if (!title || !title.trim()) {
       return res.status(400).json({ error: "Title is required" });
     }
@@ -78,13 +102,20 @@ router.post("/", auth, async (req, res) => {
       return res.status(400).json({ error: "Weekly quests can only be Sprout or Bloom" });
     }
 
-    const activeCount = await Task.countDocuments({
+    const today = day || "";
+    const countQuery = {
       user: req.user._id,
       type: taskType,
       priority: taskPriority,
-      done: false,
-    });
-    if (activeCount >= caps[taskPriority]) {
+    };
+    if (taskType === "daily") {
+      countQuery.localDay = today;
+    } else {
+      countQuery.done = false;
+    }
+
+    const usedCount = await Task.countDocuments(countQuery);
+    if (usedCount >= caps[taskPriority]) {
       const typeLabel = taskType === "weekly" ? "Weekly" : "Daily";
       return res.status(400).json({
         error: `${typeLabel} ${DIFFICULTY_LABEL[taskPriority]} quests are full (${caps[taskPriority]}/${caps[taskPriority]})`,
@@ -98,6 +129,7 @@ router.post("/", auth, async (req, res) => {
       priority: taskPriority,
       type: taskType,
       due: due || "",
+      localDay: today,
     });
 
     res.status(201).json({ task });
@@ -144,36 +176,46 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-// PATCH /api/tasks/:id/toggle
-router.patch("/:id/toggle", auth, async (req, res) => {
+// PATCH /api/tasks/:id/complete
+router.patch("/:id/complete", auth, async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
     if (!task) {
       return res.status(404).json({ error: "Task not found" });
     }
 
+    if (task.done) {
+      return res.status(400).json({ error: "Quest is already completed" });
+    }
+
+    const today = req.body.day || "";
+    if (today && today >= expiresDayOf(task)) {
+      return res.status(400).json({
+        error: "Quest has expired and can no longer be completed",
+        expired: true,
+      });
+    }
+
+    const required = COOLDOWN_MS[task.priority] || 0;
+    const elapsed = Date.now() - new Date(task.createdAt).getTime();
+    if (elapsed < required) {
+      return res.status(400).json({
+        error: "Quest needs more growing time",
+        remainingMs: required - elapsed,
+      });
+    }
+
     const user = await User.findById(req.user._id);
 
-    task.done = !task.done;
-
-    if (task.done) {
-      // Award XP and coins
-      const xp = XP_REWARDS[task.priority] || 10;
-      const coins = COIN_REWARDS[task.type]?.[task.priority] ?? 0;
-      user.stats.xp += xp;
-      user.stats.coins += coins;
-      user.stats.level = recalcLevel(user.stats.xp);
-      awardMilestones(user);
-      task.completedAt = new Date();
-    } else {
-      // Revoke XP and coins
-      const xp = XP_REWARDS[task.priority] || 10;
-      const coins = COIN_REWARDS[task.type]?.[task.priority] ?? 0;
-      user.stats.xp = Math.max(0, user.stats.xp - xp);
-      user.stats.coins = Math.max(0, user.stats.coins - coins);
-      user.stats.level = recalcLevel(user.stats.xp);
-      task.completedAt = null;
-    }
+    const xp = XP_REWARDS[task.priority] || 10;
+    const coins = COIN_REWARDS[task.type]?.[task.priority] ?? 0;
+    user.stats.xp += xp;
+    user.stats.coins += coins;
+    user.stats.level = recalcLevel(user.stats.xp);
+    awardMilestones(user);
+    task.done = true;
+    task.completedAt = new Date();
+    task.completedLocalDay = today;
 
     await task.save();
     await user.save();
@@ -184,37 +226,45 @@ router.patch("/:id/toggle", auth, async (req, res) => {
   }
 });
 
-// GET /api/tasks/stats (streak computed live from completion history)
+// GET /api/tasks/stats (streak computed live from daily completion history)
 router.get("/stats", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
-    const tasks = await Task.find({ user: req.user._id, done: true }).select(
-      "completedAt"
-    );
+    const tasks = await Task.find({
+      user: req.user._id,
+      done: true,
+      type: "daily",
+    }).select("completedAt completedLocalDay");
 
-    // Compute streak from completion history
-    const completionDates = new Set();
+    const today = req.query.day || "";
+
+    const completionCounts = {};
     tasks.forEach((t) => {
-      if (t.completedAt) {
-        const d = t.completedAt.toISOString().slice(0, 10);
-        completionDates.add(d);
+      const day =
+        t.completedLocalDay ||
+        (t.completedAt ? t.completedAt.toISOString().slice(0, 10) : "");
+      if (day) {
+        completionCounts[day] = (completionCounts[day] || 0) + 1;
       }
     });
 
     let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < 365; i++) {
-      const check = new Date(today);
+      const check = new Date(todayStart);
       check.setDate(check.getDate() - i);
       const dateStr = check.toISOString().slice(0, 10);
-      if (completionDates.has(dateStr)) {
+      const count = completionCounts[dateStr] || 0;
+      if (count >= DAILY_STREAK_GOAL) {
         streak++;
       } else if (i > 0) {
         break;
       }
     }
+
+    const todayCompleted = today ? completionCounts[today] || 0 : 0;
 
     const xpIntoLevel = user.stats.xp;
     let accumulated = 0;
@@ -232,6 +282,8 @@ router.get("/stats", auth, async (req, res) => {
       xpIntoLevel: xpIntoLevel - accumulated,
       xpForNextLevel: xpForLevel(currentLevel),
       totalCompleted: tasks.length,
+      todayCompleted,
+      dailyGoal: DAILY_STREAK_GOAL,
     });
   } catch (err) {
     res.status(500).json({ error: "Server error" });

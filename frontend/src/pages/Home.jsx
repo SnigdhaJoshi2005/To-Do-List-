@@ -400,15 +400,15 @@ export default function Home() {
               </div>
               {featuredItem ? (
                 <div className="flex flex-col items-center gap-2 mb-3 bg-muted/50 rounded-2xl px-4 py-5">
-                  <div className="relative h-16 w-16 flex items-center justify-center">
+                  <div className="relative h-24 w-24 flex items-center justify-center">
                     {featuredItem.image ? (
                       <img
                         src={featuredItem.image}
                         alt={featuredItem.name}
-                        className={`h-16 w-16 object-contain ${featuredItem.locked ? "grayscale opacity-50" : ""}`}
+                        className={`h-24 w-24 object-contain ${featuredItem.locked ? "grayscale opacity-50" : ""}`}
                       />
                     ) : (
-                      <span className={`text-4xl leading-none ${featuredItem.locked ? "grayscale opacity-50" : ""}`}>
+                      <span className={`text-5xl leading-none ${featuredItem.locked ? "grayscale opacity-50" : ""}`}>
                         {featuredItem.icon}
                       </span>
                     )}

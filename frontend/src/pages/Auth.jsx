@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useGame } from "../context/GameStateContext";
 
 export default function Auth() {
-  const { login, register } = useGame();
+  const { login, register, forgotPassword } = useGame();
   const [mode, setMode] = useState("login");
+  const [view, setView] = useState("auth");
   const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [resetEmail, setResetEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,23 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const message = await forgotPassword(resetEmail);
+      setSuccess(message);
+      setLoading(false);
+      setResetEmail("");
+      setView("auth");
+      setMode("login");
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ animation: "fadeIn 0.4s ease-out" }}>
       <div className="bg-surface border border-border/50 rounded-[var(--radius-xl)] p-8 w-full max-w-md shadow-[var(--shadow-lg)]">
@@ -46,51 +65,92 @@ export default function Auth() {
           <p className="text-sm text-secondary mt-1">Turn your tasks into adventures</p>
         </div>
 
-        <div className="flex gap-1 p-1 bg-muted rounded-[var(--radius-md)] mb-6">
-          {["login", "register"].map((m) => (
-            <button
-              key={m}
-              onClick={() => { setMode(m); setError(""); setSuccess(""); }}
-              className={`flex-1 py-2 rounded-[var(--radius-sm)] text-sm font-semibold transition-all cursor-pointer ${
-                mode === m ? "bg-surface text-primary shadow-[var(--shadow-sm)]" : "text-secondary hover:text-primary"
-              }`}
-            >
-              {m === "login" ? "Log In" : "Sign Up"}
+        {view === "forgot" ? (
+          <>
+            <button onClick={() => { setView("auth"); setError(""); setSuccess(""); }} className="text-sm font-semibold text-secondary hover:text-primary mb-6 flex items-center gap-1.5 cursor-pointer transition-colors">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></svg>
+              Back to log in
             </button>
-          ))}
-        </div>
 
-        {error && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-sm text-red-600 font-medium">
-            {error}
-          </div>
+            <h2 className="text-xl font-semibold text-primary mb-1">Forgot password?</h2>
+            <p className="text-sm text-secondary mb-6">Enter your email and we'll send you a link to reset your password.</p>
+
+            {error && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-sm text-red-600 font-medium">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-[var(--radius-md)] text-sm text-green-600 font-medium">
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleForgot} className="flex flex-col gap-4">
+              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
+                <span>Email</span>
+                <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} placeholder="you@example.com" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
+              </label>
+              <button type="submit" disabled={loading} className="mt-2 px-6 py-3 bg-accent text-white rounded-[var(--radius-md)] font-semibold text-sm hover:bg-accent-hover shadow-[0_2px_8px_rgba(184,164,114,0.3)] transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? "..." : "Send reset link"}
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <div className="flex gap-1 p-1 bg-muted rounded-[var(--radius-md)] mb-6">
+              {["login", "register"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => { setMode(m); setError(""); setSuccess(""); }}
+                  className={`flex-1 py-2 rounded-[var(--radius-sm)] text-sm font-semibold transition-all cursor-pointer ${
+                    mode === m ? "bg-surface text-primary shadow-[var(--shadow-sm)]" : "text-secondary hover:text-primary"
+                  }`}
+                >
+                  {m === "login" ? "Log In" : "Sign Up"}
+                </button>
+              ))}
+            </div>
+
+            {error && (
+              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-sm text-red-600 font-medium">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-[var(--radius-md)] text-sm text-green-600 font-medium">
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {mode === "register" && (
+                <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
+                  <span>Username</span>
+                  <input type="text" value={form.username} onChange={update("username")} placeholder="Choose a username" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
+                </label>
+              )}
+              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
+                <span>Email</span>
+                <input type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" autoFocus={mode === "login"} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
+                <span>Password</span>
+                <input type="password" value={form.password} onChange={update("password")} placeholder="Min 6 characters" className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
+              </label>
+              <button type="submit" disabled={loading} className="mt-2 px-6 py-3 bg-accent text-white rounded-[var(--radius-md)] font-semibold text-sm hover:bg-accent-hover shadow-[0_2px_8px_rgba(184,164,114,0.3)] transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? "..." : mode === "login" ? "Log In" : "Create Account"}
+              </button>
+              {mode === "login" && (
+                <button type="button" onClick={() => { setView("forgot"); setError(""); setSuccess(""); }} className="text-sm font-semibold text-secondary hover:text-accent transition-colors cursor-pointer">
+                  Forgot password?
+                </button>
+              )}
+            </form>
+          </>
         )}
-
-        {success && (
-          <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-[var(--radius-md)] text-sm text-green-600 font-medium">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {mode === "register" && (
-            <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-              <span>Username</span>
-              <input type="text" value={form.username} onChange={update("username")} placeholder="Choose a username" autoFocus className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
-            </label>
-          )}
-          <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-            <span>Email</span>
-            <input type="email" value={form.email} onChange={update("email")} placeholder="you@example.com" autoFocus={mode === "login"} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-            <span>Password</span>
-            <input type="password" value={form.password} onChange={update("password")} placeholder="Min 6 characters" className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent focus:shadow-[0_0_0_3px_rgba(184,164,114,0.1)] transition-all" />
-          </label>
-          <button type="submit" disabled={loading} className="mt-2 px-6 py-3 bg-accent text-white rounded-[var(--radius-md)] font-semibold text-sm hover:bg-accent-hover shadow-[0_2px_8px_rgba(184,164,114,0.3)] transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-            {loading ? "..." : mode === "login" ? "Log In" : "Create Account"}
-          </button>
-        </form>
       </div>
     </div>
   );

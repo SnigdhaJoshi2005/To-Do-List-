@@ -15,6 +15,7 @@ import QuestCard from "../components/QuestCard/QuestCard";
 import Button from "../components/Button/Button";
 import NewQuestModal from "../components/NewQuestModal/NewQuestModal";
 import ThemeToggle from "../components/ThemeToggle/ThemeToggle";
+import NotificationsBell from "../components/NotificationsBell/NotificationsBell";
 import { RiSeedlingLine } from "react-icons/ri";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
@@ -142,6 +143,8 @@ export default function Home() {
             </nav>
 
             <ThemeToggle variant="light" />
+
+            <NotificationsBell variant="light" />
 
             <NavLink
               to="/profile"
@@ -293,10 +296,10 @@ export default function Home() {
                   <div className="text-center py-10 bg-surface rounded-[var(--radius-lg)] border border-border border-dashed">
                     <ImHeart className="text-5xl text-primary block mx-auto mb-3" />
                     <p className="font-semibold text-primary">
-                      All quests complete!
+                      No quests planted yet!
                     </p>
                     <p className="text-sm text-secondary mt-1">
-                      Add a new one below
+                      Plant your first quest below
                     </p>
                   </div>
                 ) : (

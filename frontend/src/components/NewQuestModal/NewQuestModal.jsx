@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGame } from "../../context/GameStateContext";
 import Button from "../Button/Button";
-import { RiSeedlingLine } from "react-icons/ri";
+import { RiSeedlingLine, RiNotification2Line } from "react-icons/ri";
 import { DAILY_CAPS, WEEKLY_CAPS, DIFF_LABEL } from "../../constants/quests";
 
 const todayStr = (d = new Date()) => {
@@ -102,6 +102,11 @@ export default function NewQuestModal({ open, onClose, initialTitle = "" }) {
             <span>Due date (optional)</span>
             <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
           </label>
+          {form.dueDate && (
+            <p className="text-[11px] font-semibold text-dim -mt-1 inline-flex items-center gap-1">
+              <RiNotification2Line className="text-xs" /> Email reminders will be sent a day before and on the due date.
+            </p>
+          )}
           {error && (
             <p className="text-[11px] font-semibold text-[#e05252] bg-[rgba(224,82,82,0.1)] px-3 py-2 rounded-lg">
               {error}

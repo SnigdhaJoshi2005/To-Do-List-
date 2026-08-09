@@ -26,11 +26,23 @@ const userSchema = new mongoose.Schema(
     stats: {
       xp: { type: Number, default: 0 },
       level: { type: Number, default: 1 },
-      coins: { type: Number, default: 50 },
+      coins: { type: Number, default: 0 },
       milestonesAwarded: { type: [Number], default: [] },
     },
     settings: {
       theme: { type: String, default: "default" },
+    },
+    welcomeBonusClaimed: {
+      type: Boolean,
+      default: false,
+    },
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }

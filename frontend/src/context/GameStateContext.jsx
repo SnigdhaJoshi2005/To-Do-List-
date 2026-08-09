@@ -80,6 +80,11 @@ function mapTaskToQuest(task) {
     plantedDay,
     expiresDay: addDays(plantedDay, task.type === "weekly" ? 7 : 1),
     completedAt: task.completedAt || null,
+    subtasks: (task.subtasks || []).map((s) => ({
+      id: s._id,
+      title: s.title,
+      done: s.done,
+    })),
     readyAt: task.createdAt
       ? new Date(task.createdAt).getTime() + COOLDOWN_MS[difficulty]
       : 0,
@@ -90,10 +95,12 @@ export function GameStateProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [quests, setQuests] = useState([]);
-  const [stats, setStats] = useState({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
+  const [stats, setStats] = useState({ xp: 0, level: 1, coins: 0, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
   const [shopItems, setShopItems] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [events, setEvents] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [avatar, setAvatar] = useState({ outfit: "outfit1", hair: "hair1" });
 
   const fetchUser = useCallback(async () => {
@@ -156,6 +163,47 @@ export function GameStateProvider({ children }) {
     } catch {}
   }, []);
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/notifications`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch {}
+  }, []);
+
+  const markNotificationRead = useCallback(async (notificationId) => {
+    try {
+      const res = await fetch(`${API}/notifications/${notificationId}/read`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n._id === notificationId ? { ...n, read: true } : n
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch {}
+  }, []);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/notifications/read-all`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        setUnreadCount(0);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     (async () => {
       try {
@@ -163,12 +211,18 @@ export function GameStateProvider({ children }) {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
-          await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
+          await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents(), fetchNotifications()]);
         }
       } catch {}
       setAuthChecked(true);
     })();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(fetchNotifications, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user, fetchNotifications]);
 
   const addQuest = useCallback(async ({ title, difficulty = "sprout", type = "daily", dueDate = null }) => {
     try {
@@ -221,6 +275,64 @@ export function GameStateProvider({ children }) {
     }
     return res.ok;
   }, [fetchStats]);
+
+  const addSubtask = useCallback(async (questId, title) => {
+    if (!title.trim()) return { ok: false, error: "Subtask title is required" };
+    try {
+      const res = await fetch(`${API}/tasks/${questId}/subtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: title.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setQuests((prev) =>
+          prev.map((q) => (q.id === questId ? mapTaskToQuest(data.task) : q))
+        );
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Could not add subtask" };
+    } catch {
+      return { ok: false, error: "Could not add subtask" };
+    }
+  }, []);
+
+  const toggleSubtask = useCallback(async (questId, subtaskId) => {
+    try {
+      const res = await fetch(`${API}/tasks/${questId}/subtasks/${subtaskId}`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setQuests((prev) =>
+          prev.map((q) => (q.id === questId ? mapTaskToQuest(data.task) : q))
+        );
+      }
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const deleteSubtask = useCallback(async (questId, subtaskId) => {
+    try {
+      const res = await fetch(`${API}/tasks/${questId}/subtasks/${subtaskId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setQuests((prev) =>
+          prev.map((q) => (q.id === questId ? mapTaskToQuest(data.task) : q))
+        );
+      }
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }, []);
 
   const buyItem = useCallback(async (itemId) => {
     const res = await fetch(`${API}/shop/buy`, {
@@ -286,8 +398,8 @@ export function GameStateProvider({ children }) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Login failed");
     setUser(data.user);
-    await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents()]);
-  }, [fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents]);
+    await Promise.all([fetchQuests(), fetchStats(), fetchShopItems(), fetchInventory(), fetchEvents(), fetchNotifications()]);
+  }, [fetchQuests, fetchStats, fetchShopItems, fetchInventory, fetchEvents, fetchNotifications]);
 
   const register = useCallback(async (username, email, password) => {
     const res = await fetch(`${API}/auth/register`, {
@@ -300,6 +412,48 @@ export function GameStateProvider({ children }) {
     if (!res.ok) throw new Error(data.error || "Registration failed");
   }, []);
 
+  const forgotPassword = useCallback(async (email) => {
+    const res = await fetch(`${API}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Something went wrong");
+    return data.message;
+  }, []);
+
+  const resetPassword = useCallback(async (token, password) => {
+    const res = await fetch(`${API}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ token, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Something went wrong");
+    return data.message;
+  }, []);
+
+  const claimWelcomeBonus = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/auth/welcome-claim`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setUser((prev) => ({ ...prev, welcomeBonusClaimed: true }));
+        setStats((prev) => ({ ...prev, coins: data.stats?.coins ?? prev.coins }));
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Could not claim welcome bonus" };
+    } catch {
+      return { ok: false, error: "Could not claim welcome bonus" };
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     await fetch(`${API}/auth/logout`, {
       method: "POST",
@@ -307,10 +461,12 @@ export function GameStateProvider({ children }) {
     });
     setUser(null);
     setQuests([]);
-    setStats({ xp: 0, level: 1, coins: 50, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
+    setStats({ xp: 0, level: 1, coins: 0, streak: 0, xpIntoLevel: 0, xpForNextLevel: 100, totalCompleted: 0, todayCompleted: 0, dailyGoal: DAILY_STREAK_GOAL });
     setShopItems([]);
     setInventory([]);
     setEvents([]);
+    setNotifications([]);
+    setUnreadCount(0);
   }, []);
 
   const mappedInventory = shopItems.map((item) => {
@@ -336,6 +492,7 @@ export function GameStateProvider({ children }) {
     username: user?.username || "User",
     user,
     authChecked,
+    welcomeBonusClaimed: user?.welcomeBonusClaimed ?? true,
     quests,
     xp: stats.xpIntoLevel || 0,
     level: stats.level,
@@ -347,13 +504,23 @@ export function GameStateProvider({ children }) {
     dailyGoal: stats.dailyGoal || DAILY_STREAK_GOAL,
     inventory: mappedInventory,
     events,
+    notifications,
+    unreadCount,
+    markNotificationRead,
+    markAllNotificationsRead,
     avatar,
     setAvatar,
     login,
     register,
+    forgotPassword,
+    resetPassword,
     logout,
+    claimWelcomeBonus,
     addQuest,
     completeQuest,
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
     buyItem,
     canAfford,
     togglePlaced,

@@ -48,6 +48,24 @@ const taskSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    reminderDates: {
+      type: [String],
+      default: [],
+    },
+    subtasks: [
+      {
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 200,
+        },
+        done: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -1,8 +1,15 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const User = require("../models/User");
+const auth = require("../middleware/auth");
+const { sendMail, passwordResetEmail } = require("../services/mailer");
 
 const router = express.Router();
+
+function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
 
 function signToken(userId) {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -81,6 +88,94 @@ router.post("/logout", (req, res) => {
     sameSite: "lax",
   });
   res.json({ message: "Logged out" });
+});
+
+// POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (user) {
+      const token = crypto.randomBytes(32).toString("hex");
+      user.resetPasswordToken = hashToken(token);
+      user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+      await user.save();
+
+      const resetLink = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${token}`;
+      try {
+        await sendMail({
+          to: user.email,
+          subject: "🌿 Questify: Reset your password",
+          html: passwordResetEmail({ resetLink }),
+        });
+      } catch (mailErr) {
+        console.error("Failed to send password reset email:", mailErr);
+      }
+    }
+
+    res.json({ message: "If an account exists for that email, a reset link has been sent." });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required" });
+    }
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters" });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: hashToken(token),
+      resetPasswordExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Reset link is invalid or has expired" });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.json({ message: "Password has been reset. You can now log in." });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// POST /api/auth/welcome-claim
+router.post("/welcome-claim", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (user.welcomeBonusClaimed) {
+      return res.status(400).json({ error: "Welcome bonus already claimed" });
+    }
+
+    user.stats.coins += 50;
+    user.welcomeBonusClaimed = true;
+    await user.save();
+
+    res.json({ user: user.toPublic(), stats: user.stats });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // GET /api/auth/me

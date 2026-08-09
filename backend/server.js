@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/tasks");
 const eventRoutes = require("./routes/events");
 const shopRoutes = require("./routes/shop");
+const notificationRoutes = require("./routes/notifications");
+const { startReminderCron } = require("./services/reminderCron");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,7 +25,10 @@ app.use(cookieParser());
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
+  .then(() => {
+    console.log("Connected to MongoDB");
+    startReminderCron();
+  })
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.get("/", (req, res) => {
@@ -34,6 +39,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/shop", shopRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

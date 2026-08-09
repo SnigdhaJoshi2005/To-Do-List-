@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { RiSeedlingLine } from "react-icons/ri";
+import { RiSeedlingLine, RiAddLine, RiCloseLine, RiCheckboxBlankCircleLine, RiCheckboxCircleLine, RiArrowDownSLine, RiArrowRightSLine } from "react-icons/ri";
 import { GiSpotedFlower } from "react-icons/gi";
 import { TbPlant2 } from "react-icons/tb";
 import { PiAcornDuotone, PiSunDuotone, PiCalendarDuotone, PiTimerDuotone } from "react-icons/pi";
+import { useGame } from "../../context/GameStateContext";
 
 const difficultyBadge = {
   seedling: { icon: <RiSeedlingLine />, label: "Seedling", color: "bg-[rgba(128,199,121,0.15)] text-[#80C779]", bar: "#80C779" },
@@ -25,12 +26,22 @@ function formatCountdown(ms) {
 }
 
 export default function QuestCard({ quest, onComplete }) {
+  const { toggleSubtask, addSubtask, deleteSubtask } = useGame();
   const badge = difficultyBadge[quest.difficulty] || difficultyBadge.sprout;
   const [now, setNow] = useState(Date.now());
+  const [expanded, setExpanded] = useState(false);
+  const [newSubtask, setNewSubtask] = useState("");
 
   const expired = !quest.completed && quest.expiresDay && todayStr() >= quest.expiresDay;
   const ready = quest.completed || !quest.readyAt || now >= quest.readyAt;
   const waiting = !quest.completed && !expired && !ready;
+
+  const subtasks = quest.subtasks || [];
+  const subtaskTotal = subtasks.length;
+  const subtaskDone = subtasks.filter((s) => s.done).length;
+  const lockedBySubtasks = !quest.completed && subtaskTotal > 0 && subtaskDone < subtaskTotal;
+  const completeDisabled = quest.completed || expired || !ready || lockedBySubtasks;
+  const locked = quest.completed || expired;
 
   useEffect(() => {
     if (!waiting) return;
@@ -41,7 +52,7 @@ export default function QuestCard({ quest, onComplete }) {
   return (
     <div
       style={{ borderLeftColor: badge.bar }}
-      className={`bg-surface border border-l-4 rounded-[var(--radius-lg)] p-4 flex items-center gap-4 transition-all duration-[var(--transition)] ${
+      className={`bg-surface border border-l-4 rounded-[var(--radius-lg)] p-4 flex flex-col gap-3 transition-all duration-[var(--transition)] ${
         quest.completed
           ? "border-[#80C779]/30 bg-[rgba(128,199,121,0.07)] opacity-80"
           : expired
@@ -49,16 +60,18 @@ export default function QuestCard({ quest, onComplete }) {
           : "border-border/50 hover:border-accent/40 hover:shadow-[var(--shadow-md)] hover:-translate-y-1"
       }`}
     >
-      <button
+      <div className="flex items-center gap-4">
+        <button
         onClick={() => onComplete(quest.id)}
-        disabled={quest.completed || expired || !ready}
+        disabled={completeDisabled}
+        title={lockedBySubtasks ? "Complete all subtasks first" : undefined}
         style={quest.completed ? { animation: "scaleIn 0.25s ease-out" } : undefined}
         className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-[var(--transition)] ${
           quest.completed
             ? "bg-accent border-accent text-white"
             : expired
             ? "border-[#e05252] text-[#e05252]"
-            : ready
+            : ready && !lockedBySubtasks
             ? "border-border hover:border-accent cursor-pointer"
             : "border-border/60 cursor-not-allowed opacity-50"
         }`}
@@ -79,7 +92,7 @@ export default function QuestCard({ quest, onComplete }) {
           {quest.title}
         </p>
         <div className="flex items-center gap-2 mt-1">
-          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap inline-flex items-center gap-1 ${badge.color}`}>
             {badge.icon} {badge.label}
           </span>
           <span className="text-[11px] font-semibold text-dim px-2 py-0.5 rounded-full bg-muted flex items-center gap-1">
@@ -99,6 +112,26 @@ export default function QuestCard({ quest, onComplete }) {
             </span>
           )}
         </div>
+        <div className="flex items-center gap-2 mt-1.5">
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-[var(--radius-md)] border flex items-center gap-1.5 transition-all cursor-pointer ${
+              expanded
+                ? "bg-accent border-accent text-white"
+                : subtaskDone === subtaskTotal && subtaskTotal > 0
+                ? "bg-[rgba(128,199,121,0.15)] text-[#80C779] border-[#80C779]/40 hover:bg-[rgba(128,199,121,0.25)]"
+                : "bg-surface border-border text-secondary hover:border-accent hover:text-accent"
+            }`}
+          >
+            {expanded ? <RiArrowDownSLine className="text-sm" /> : <RiArrowRightSLine className="text-sm" />}
+            {subtaskTotal > 0 ? `Subtasks (${subtaskDone}/${subtaskTotal})` : "Subtasks"}
+          </button>
+          {lockedBySubtasks && (
+            <span className="text-[11px] font-semibold text-dim px-2 py-0.5 rounded-full bg-muted hidden sm:inline-flex items-center gap-1">
+              Complete subtasks to finish
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="text-right shrink-0 flex flex-col items-end gap-1">
@@ -107,6 +140,84 @@ export default function QuestCard({ quest, onComplete }) {
           +{quest.seeds} <PiAcornDuotone className="text-[11px]" />
         </span>
       </div>
+      </div>
+
+      {subtaskTotal > 0 && (
+        <div className="h-1 rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${subtaskDone === subtaskTotal ? "bg-[#80C779]" : "bg-accent"}`}
+            style={{ width: `${Math.round((subtaskDone / subtaskTotal) * 100)}%` }}
+          />
+        </div>
+      )}
+      {expanded && (
+        <div className="pt-3 border-t border-border/40 flex flex-col gap-1.5" style={{ animation: "fadeIn 0.2s ease-out" }}>
+          {subtaskTotal === 0 ? (
+            <p className="text-xs text-dim italic">No subtasks yet — add the first step below.</p>
+          ) : (
+            subtasks.map((s) => (
+              <div key={s.id} className="flex items-center gap-2 group">
+                <button
+                  onClick={() => toggleSubtask(quest.id, s.id)}
+                  disabled={locked}
+                  className={`shrink-0 transition-all cursor-pointer ${locked ? "opacity-60 cursor-default" : "hover:scale-110"}`}
+                  title={s.done ? "Mark as not done" : "Mark as done"}
+                >
+                  {s.done ? (
+                    <RiCheckboxCircleLine className="text-[#80C779] text-lg" />
+                  ) : (
+                    <RiCheckboxBlankCircleLine className="text-border hover:text-accent text-lg" />
+                  )}
+                </button>
+                <span className={`flex-1 text-[13px] ${s.done ? "line-through text-dim" : "text-secondary"}`}>
+                  {s.title}
+                </span>
+                {!locked && (
+                  <button
+                    onClick={() => deleteSubtask(quest.id, s.id)}
+                    className="text-dim hover:text-[#e05252] transition-colors opacity-0 group-hover:opacity-100 cursor-pointer shrink-0"
+                    title="Delete subtask"
+                  >
+                    <RiCloseLine className="text-base" />
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+          {locked ? (
+            <p className="text-[11px] font-semibold text-dim mt-1">
+              This quest is {quest.completed ? "completed" : "expired"} and can't be edited.
+            </p>
+          ) : (
+            <form
+              className="flex items-center gap-2 mt-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newSubtask.trim()) return;
+                addSubtask(quest.id, newSubtask.trim()).then((res) => {
+                  if (res && res.ok) setNewSubtask("");
+                });
+              }}
+            >
+              <input
+                type="text"
+                value={newSubtask}
+                onChange={(e) => setNewSubtask(e.target.value)}
+                placeholder="Add a step..."
+                maxLength={200}
+                className="flex-1 px-3 py-1.5 text-xs border border-border rounded-[var(--radius-md)] bg-muted text-primary focus:border-accent transition-colors outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!newSubtask.trim()}
+                className="text-xs font-semibold text-accent hover:text-white hover:bg-accent border border-accent rounded-[var(--radius-md)] px-2.5 py-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                <RiAddLine /> Add
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

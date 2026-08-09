@@ -176,6 +176,77 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+// PATCH /api/tasks/:id/subtasks/:subtaskId
+router.patch("/:id/subtasks/:subtaskId", auth, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const subtask = task.subtasks.id(req.params.subtaskId);
+    if (!subtask) {
+      return res.status(404).json({ error: "Subtask not found" });
+    }
+
+    subtask.done = !subtask.done;
+    await task.save();
+    res.json({ task });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// POST /api/tasks/:id/subtasks
+router.post("/:id/subtasks", auth, async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: "Subtask title is required" });
+    }
+
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (task.done) {
+      return res.status(400).json({ error: "Quest is already completed" });
+    }
+    const today = req.body.day || "";
+    if (today && today >= expiresDayOf(task)) {
+      return res.status(400).json({ error: "Quest has expired" });
+    }
+
+    task.subtasks.push({ title: title.trim(), done: false });
+    await task.save();
+    res.status(201).json({ task });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/tasks/:id/subtasks/:subtaskId
+router.delete("/:id/subtasks/:subtaskId", auth, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const subtask = task.subtasks.id(req.params.subtaskId);
+    if (!subtask) {
+      return res.status(404).json({ error: "Subtask not found" });
+    }
+
+    task.subtasks.pull(req.params.subtaskId);
+    await task.save();
+    res.json({ task });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // PATCH /api/tasks/:id/complete
 router.patch("/:id/complete", auth, async (req, res) => {
   try {
@@ -186,6 +257,10 @@ router.patch("/:id/complete", auth, async (req, res) => {
 
     if (task.done) {
       return res.status(400).json({ error: "Quest is already completed" });
+    }
+
+    if (task.subtasks.some((s) => !s.done)) {
+      return res.status(400).json({ error: "Complete all subtasks first" });
     }
 
     const today = req.body.day || "";

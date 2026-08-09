@@ -15,7 +15,10 @@ import Garden from "./pages/Garden";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import ThemeToggle from "./components/ThemeToggle/ThemeToggle";
+import NotificationsBell from "./components/NotificationsBell/NotificationsBell";
+import WelcomeModal from "./components/WelcomeModal/WelcomeModal";
 
 const NAV_ITEMS = [
   { to: "/home", label: "Home", icon: "home" },
@@ -210,6 +213,8 @@ function Layout({ children, homeBg }) {
 
             <ThemeToggle variant="default" />
 
+            <NotificationsBell variant="default" />
+
             <NavLink
               to="/profile"
               className="flex items-center gap-2 bg-muted rounded-full pl-1.5 pr-3 py-1.5 hover:bg-accent/10 transition-colors"
@@ -242,9 +247,10 @@ export default function App() {
 }
 
 function AppContent() {
-  const { authChecked, user } = useGame();
+  const { authChecked, user, welcomeBonusClaimed } = useGame();
   const location = useLocation();
   const homeBg = location.pathname === "/home";
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
 
   if (!authChecked) {
     return (
@@ -252,6 +258,10 @@ function AppContent() {
         <span className="text-5xl animate-pulse">🌿</span>
       </div>
     );
+  }
+
+  if (location.pathname.startsWith("/reset-password")) {
+    return <ResetPassword />;
   }
 
   if (!user) return <Auth />;
@@ -263,6 +273,10 @@ function AppContent() {
         <div className="q-blob q-blob-2" />
         <div className="q-blob q-blob-3" />
       </div>
+      <WelcomeModal
+        open={!!user && !welcomeBonusClaimed && !welcomeDismissed}
+        onDismiss={() => setWelcomeDismissed(true)}
+      />
       <Layout homeBg={homeBg}>
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />

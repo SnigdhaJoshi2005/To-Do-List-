@@ -31,6 +31,10 @@ const eventSchema = new mongoose.Schema(
       enum: ["none", "yearly"],
       default: "none",
     },
+    reminderDates: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

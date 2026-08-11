@@ -46,7 +46,9 @@ export default function NewQuestModal({ open, onClose, initialTitle = "" }) {
     countActive("weekly", "sprout") >= WEEKLY_CAPS.sprout &&
     countActive("weekly", "bloom") >= WEEKLY_CAPS.bloom;
   const selectedTypeFull = form.type === "weekly" ? weeklyFull : dailyFull;
-  const submitDisabled = selectedTypeFull || selectedLeft <= 0 || !form.title.trim();
+  const selectedFull = selectedLeft <= 0;
+  const limitReached = selectedTypeFull || selectedFull;
+  const submitDisabled = limitReached || !form.title.trim();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,14 +100,18 @@ export default function NewQuestModal({ open, onClose, initialTitle = "" }) {
               <option value="weekly">Weekly</option>
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
-            <span>Due date (optional)</span>
-            <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
-          </label>
-          {form.dueDate && (
-            <p className="text-[11px] font-semibold text-dim -mt-1 inline-flex items-center gap-1">
-              <RiNotification2Line className="text-xs" /> Email reminders will be sent a day before and on the due date.
-            </p>
+          {form.type === "weekly" && (
+            <>
+              <label className="flex flex-col gap-1.5 text-sm font-semibold text-secondary">
+                <span>Due date (optional)</span>
+                <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
+              </label>
+              {form.dueDate && (
+                <p className="text-[11px] font-semibold text-dim -mt-1 inline-flex items-center gap-1">
+                  <RiNotification2Line className="text-xs" /> Email reminders will be sent a day before and on the due date.
+                </p>
+              )}
+            </>
           )}
           {error && (
             <p className="text-[11px] font-semibold text-[#e05252] bg-[rgba(224,82,82,0.1)] px-3 py-2 rounded-lg">
@@ -116,11 +122,13 @@ export default function NewQuestModal({ open, onClose, initialTitle = "" }) {
             <Button variant="ghost" onClick={onClose}>Cancel</Button>
             <Button variant="primary" onClick={handleSubmit} disabled={submitDisabled} className={submitDisabled ? "opacity-50 cursor-not-allowed" : ""}>Plant Quest <RiSeedlingLine className="inline" /></Button>
           </div>
-          {submitDisabled && (
+          {limitReached && (
             <p className="text-[11px] font-semibold text-dim mt-1">
-              {form.type === "weekly"
-                ? "Weekly quests are at their limit — complete an active quest to free a slot."
-                : "Daily quests are at their limit for today — new slots unlock at midnight."}
+              {selectedTypeFull
+                ? form.type === "weekly"
+                  ? "Weekly quests are at their limit — complete an active quest to free a slot."
+                  : "Daily quests are at their limit for today — new slots unlock at midnight."
+                : "This difficulty is out of slots — try another one."}
             </p>
           )}
         </form>

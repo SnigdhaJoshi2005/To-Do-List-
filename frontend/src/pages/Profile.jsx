@@ -46,7 +46,9 @@ export default function Profile() {
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Left Column — 35% */}
-        <div className="lg:w-[35%] bg-surface border border-border rounded-[var(--radius-xl)] p-7 shadow-[var(--shadow-sm)] flex flex-col">
+        <div className="lg:w-[35%] storybook-card p-7 flex flex-col">
+          <span className="sb-sparkle sb-s1">✦</span>
+          <span className="sb-sparkle sb-s2">✦</span>
           <div className="flex flex-col items-center mb-6 flex-1">
             <div className="w-full flex-1 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.15)] mb-4">
               <img src={characterSrc} alt="Character" className="w-full h-full object-contain" />
@@ -65,7 +67,9 @@ export default function Profile() {
         {/* Right Column — 65% */}
         <div className="lg:w-[65%] flex flex-col gap-5">
           {/* Customization */}
-          <div className="bg-surface border border-border rounded-[var(--radius-xl)] p-7 shadow-[var(--shadow-sm)]">
+          <div className="storybook-card p-7">
+            <span className="sb-sparkle sb-s1">✦</span>
+            <span className="sb-sparkle sb-s2">✦</span>
             <h3 className="text-xl font-semibold text-primary mb-5">Customization</h3>
             <div className="flex flex-col gap-5">
               {[
@@ -99,7 +103,8 @@ export default function Profile() {
               { icon: <FaFire className="text-2xl" />, value: streak, label: "Day Streak", bg: "bg-[rgba(226,149,120,0.15)]", color: "text-coral" },
               { icon: <FaCheck className="text-2xl" />, value: totalCompleted, label: "Completed", bg: "bg-[rgba(195,169,238,0.15)]", color: "text-lavender" },
             ].map((s) => (
-              <div key={s.label} className="text-center py-7 bg-surface border border-border/40 rounded-[var(--radius-xl)] transition-all duration-200 hover:shadow-[var(--shadow-sm)] hover:-translate-y-px">
+              <div key={s.label} className="storybook-card text-center py-7">
+                <span className="sb-sparkle sb-s1">✦</span>
                 <span className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center text-2xl ${s.bg} ${s.color}`}>{s.icon}</span>
                 <span className="block text-2xl font-extrabold text-primary tabular-nums">{s.value}</span>
                 <span className="text-[11px] text-dim font-semibold uppercase tracking-wide">{s.label}</span>
@@ -108,7 +113,9 @@ export default function Profile() {
           </div>
 
           {/* Inventory */}
-          <div className="bg-surface border border-border rounded-[var(--radius-xl)] p-7 shadow-[var(--shadow-sm)]">
+          <div className="storybook-card p-7">
+            <span className="sb-sparkle sb-s1">✦</span>
+            <span className="sb-sparkle sb-s2">✦</span>
             <h3 className="text-xl font-semibold text-primary mb-5">Inventory</h3>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
               {inventory.filter((i) => i.owned).map((item) => (

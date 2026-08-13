@@ -1,9 +1,11 @@
 const nodemailer = require("nodemailer");
 
+const smtpPort = Number(process.env.SMTP_PORT) || 587;
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  port: smtpPort,
+  secure: process.env.SMTP_SECURE === "true" || smtpPort === 465,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -11,7 +13,12 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendMail({ to, subject, html }) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  const configured =
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS &&
+    !process.env.SMTP_USER.includes("replace-with") &&
+    !process.env.SMTP_PASS.includes("replace-with");
+  if (!configured) {
     console.warn(
       "[mailer] SMTP credentials not configured — skipping email to",
       to
@@ -24,6 +31,16 @@ async function sendMail({ to, subject, html }) {
     subject,
     html,
   });
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  })[character]);
 }
 
 function shell(inner) {
@@ -40,11 +57,15 @@ function shell(inner) {
 }
 
 function reminderEmail({ title, kind, dueDate, dueLabel }) {
+  const safeTitle = escapeHtml(title);
+  const safeKind = escapeHtml(kind);
+  const safeDueDate = escapeHtml(dueDate);
+  const safeDueLabel = escapeHtml(dueLabel);
   return shell(`
     <p style="margin:0 0 12px; font-size:14px;">Hey there,</p>
-    <p style="margin:0 0 12px; font-size:14px;">Just a friendly nudge — your <strong>${kind}</strong> is <strong>${dueLabel}</strong>:</p>
-    <p style="margin:0 0 16px; padding:12px 16px; background:#f2f7f1; border-radius:8px; font-size:15px; font-weight:600; color:#2f6f4e;">${title}</p>
-    <p style="margin:0 0 16px; font-size:13px; color:#6b675e;">Due: <strong>${dueDate}</strong></p>
+    <p style="margin:0 0 12px; font-size:14px;">Just a friendly nudge — your <strong>${safeKind}</strong> is <strong>${safeDueLabel}</strong>:</p>
+    <p style="margin:0 0 16px; padding:12px 16px; background:#f2f7f1; border-radius:8px; font-size:15px; font-weight:600; color:#2f6f4e;">${safeTitle}</p>
+    <p style="margin:0 0 16px; font-size:13px; color:#6b675e;">Due: <strong>${safeDueDate}</strong></p>
     <a href="${process.env.CLIENT_URL || "http://localhost:5173"}/quests" style="display:inline-block; background:#b8a472; color:#ffffff; text-decoration:none; padding:10px 18px; border-radius:8px; font-size:13px; font-weight:600;">Open Questify</a>
   `);
 }

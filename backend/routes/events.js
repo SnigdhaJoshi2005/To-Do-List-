@@ -17,7 +17,7 @@ router.get("/", auth, async (req, res) => {
 // POST /api/events
 router.post("/", auth, async (req, res) => {
   try {
-    const { title, date, time, color } = req.body;
+    const { title, date, time, color, recurring } = req.body;
     if (!title || !date) {
       return res.status(400).json({ error: "Title and date are required" });
     }
@@ -28,6 +28,7 @@ router.post("/", auth, async (req, res) => {
       date,
       time: time || "",
       color: color || "amber",
+      recurring: recurring === "yearly" ? "yearly" : "none",
     });
 
     res.status(201).json({ event });

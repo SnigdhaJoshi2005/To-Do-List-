@@ -5,10 +5,14 @@ const Notification = require("../models/Notification");
 const { sendMail, reminderEmail } = require("./mailer");
 
 function dateStrOf(d) {
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: process.env.REMINDER_TIMEZONE || "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const part = (type) => parts.find((value) => value.type === type).value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 function addDays(dateStr, n) {
@@ -51,62 +55,55 @@ async function createReminder(user, item, { type, title, kind, dueDate, dueLabel
   }
 }
 
-async function processTasks(today, tomorrow) {
+async function processTasks(tomorrow) {
+  const weeklyExpiryStart = addDays(tomorrow, -7);
   const tasks = await Task.find({
     done: false,
-    due: { $in: [today, tomorrow] },
-    reminderDates: { $ne: today },
+    type: "weekly",
+    $or: [
+      { due: tomorrow },
+      { due: "", localDay: weeklyExpiryStart },
+    ],
+    reminderDates: { $ne: tomorrow },
   }).populate("user", "email username");
 
   for (const task of tasks) {
-    let dueLabel;
-    if (task.due === today) dueLabel = "due today";
-    else if (task.due === tomorrow) dueLabel = "due tomorrow";
-    else continue;
-
     await createReminder(task.user, task, {
       type: "task",
       title: task.title,
-      kind: task.type === "weekly" ? "weekly quest" : "quest",
-      dueDate: formatDate(task.due),
-      dueLabel,
+      kind: "weekly quest",
+      dueDate: formatDate(task.due || tomorrow),
+      dueLabel: "due tomorrow",
     });
 
-    task.reminderDates = [...(task.reminderDates || []), today];
+    task.reminderDates = [...(task.reminderDates || []), tomorrow];
     await task.save();
   }
 }
 
-async function processEvents(today, tomorrow) {
+async function processEvents(tomorrow) {
   const events = await Event.find({
-    $or: [{ date: { $in: [today, tomorrow] } }, { recurring: "yearly" }],
+    $or: [{ date: tomorrow }, { recurring: "yearly" }],
   }).populate("user", "email username");
 
   for (const event of events) {
-    let triggerDate = null;
-    if (event.date === today || event.date === tomorrow) {
-      triggerDate = event.date;
-    } else if (event.recurring === "yearly") {
-      if (event.date.slice(5) === today.slice(5)) triggerDate = today;
-      else if (event.date.slice(5) === tomorrow.slice(5))
-        triggerDate = tomorrow;
-    }
-    if (!triggerDate) continue;
+    const isTomorrow =
+      event.date === tomorrow ||
+      (event.recurring === "yearly" && event.date.slice(5) === tomorrow.slice(5));
+    if (!isTomorrow) continue;
 
     const remindedDates = event.reminderDates || [];
-    if (remindedDates.includes(triggerDate)) continue;
+    if (remindedDates.includes(tomorrow)) continue;
 
-    const dueLabel =
-      triggerDate === today ? "due today" : "due tomorrow";
     await createReminder(event.user, event, {
       type: "event",
       title: event.title,
       kind: "event",
-      dueDate: formatDate(triggerDate),
-      dueLabel,
+      dueDate: formatDate(tomorrow),
+      dueLabel: "tomorrow",
     });
 
-    event.reminderDates = [...remindedDates, triggerDate];
+    event.reminderDates = [...remindedDates, tomorrow];
     await event.save();
   }
 }
@@ -115,17 +112,18 @@ async function runReminderCheck() {
   const today = dateStrOf(new Date());
   const tomorrow = addDays(today, 1);
   try {
-    await processTasks(today, tomorrow);
-    await processEvents(today, tomorrow);
+    await processTasks(tomorrow);
+    await processEvents(tomorrow);
   } catch (err) {
     console.error("Reminder cron run failed:", err);
   }
 }
 
 function startReminderCron() {
-  const every = process.env.REMINDER_CRON || "*/15 * * * *";
-  cron.schedule(every, runReminderCheck);
-  console.log(`Reminder cron started (${every})`);
+  const schedule = process.env.REMINDER_CRON || "0 9 * * *";
+  const timezone = process.env.REMINDER_TIMEZONE || "UTC";
+  cron.schedule(schedule, runReminderCheck, { timezone });
+  console.log(`Reminder cron started (${schedule}, ${timezone})`);
 }
 
 module.exports = { startReminderCron, runReminderCheck };

@@ -151,7 +151,10 @@ router.put("/:id", auth, async (req, res) => {
     if (notes !== undefined) task.notes = notes;
     if (priority !== undefined) task.priority = priority;
     if (type !== undefined) task.type = type;
-    if (due !== undefined) task.due = due;
+    if (due !== undefined && due !== task.due) {
+      task.due = due;
+      task.reminderDates = [];
+    }
 
     await task.save();
     res.json({ task });

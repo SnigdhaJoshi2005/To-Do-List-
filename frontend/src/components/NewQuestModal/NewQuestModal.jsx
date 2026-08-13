@@ -106,11 +106,9 @@ export default function NewQuestModal({ open, onClose, initialTitle = "" }) {
                 <span>Due date (optional)</span>
                 <input type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} className="px-4 py-3 border-2 border-border rounded-[var(--radius-md)] bg-muted text-primary text-sm focus:border-accent transition-colors cursor-pointer" />
               </label>
-              {form.dueDate && (
-                <p className="text-[11px] font-semibold text-dim -mt-1 inline-flex items-center gap-1">
-                  <RiNotification2Line className="text-xs" /> Email reminders will be sent a day before and on the due date.
-                </p>
-              )}
+              <p className="text-[11px] font-semibold text-dim -mt-1 inline-flex items-center gap-1">
+                <RiNotification2Line className="text-xs" /> An email reminder will be sent one day before the due date or weekly expiry.
+              </p>
             </>
           )}
           {error && (
